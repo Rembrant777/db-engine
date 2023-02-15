@@ -3,7 +3,7 @@ project(cmake_example_install)
 
 # create a library: generate the shared library from the library sources 
 # yes, we take Hello.* as a shared library 
-add_library(cmake_example_inst SHARED src/Hello.cpp)
+add_library(cmake_example_inst SHARED src/Hello.cpp ../G-compile-flags/main.cpp)
 target_include_directories(cmake_example_inst PUBLIC ${PROJECT_SOURCE_DIR}/include)
 # create an executable binary file 
 # add an executable with the abouve sources 

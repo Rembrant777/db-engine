@@ -32,3 +32,6 @@
 *.app
 **/install-package/*
 **/boost/*
+/cmake-repo/01-basic/E-installing/cmake-build-debug/
+.idea
+.idea/*
