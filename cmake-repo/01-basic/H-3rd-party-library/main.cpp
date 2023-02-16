@@ -19,6 +19,5 @@ int main(int argc, char *argv[]) {
         std::cout << "Path is not relative" << std::endl;
     }
 
-    std::cout <<
     return 0;
 }
