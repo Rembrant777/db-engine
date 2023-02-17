@@ -1,2 +1,0 @@
-/Library/Developer/CommandLineTools/usr/bin/ar qc libbson_lib.a CMakeFiles/bson_lib.dir/src/base64.cpp.o CMakeFiles/bson_lib.dir/src/nonce.cpp.o CMakeFiles/bson_lib.dir/src/oid.cpp.o CMakeFiles/bson_lib.dir/src/md5.cpp.o CMakeFiles/bson_lib.dir/src/json.cpp.o CMakeFiles/bson_lib.dir/src/bsonobj.cpp.o
-/Library/Developer/CommandLineTools/usr/bin/ranlib libbson_lib.a
