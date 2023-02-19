@@ -20,7 +20,6 @@ set(BOOST_LIB_DIR "/usr/local/lib")
 
 find_package(Boost REQUIRED COMPONENTS program_options filesystem)
 
-
 # create library based on bson source codes  
 add_library(bson "")
 target_sources(bson 
@@ -59,6 +58,7 @@ target_sources(bson
   "bson/time_support.h")
 
 include_directories(${Boost_INCLUDE_DIRS})
+add_executable(${PROJECT_NAME} main.cpp)
 
 if(BSON_BUILD_TESTS)
     message("enable bson build tests") 
@@ -86,16 +86,4 @@ if(BSON_BUILD_TESTS)
     )
     target_link_libraries(bson_tests bson gmock  gtest_main)
 endif(BSON_BUILD_TESTS)
-
-
-
-
-
-
-
-
-
-
-
-
 
