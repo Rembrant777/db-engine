@@ -19,11 +19,15 @@ set(BOOST_INCLUDE_DIR "/usr/local/include")
 set(BOOST_LIB_DIR "/usr/local/lib")
 
 find_package(Boost REQUIRED COMPONENTS program_options filesystem)
+include_directories("${EMERALDDB_PUBLIC_INCLUDE_DIR}")
 
 # create library based on bson source codes  
-add_library(bson "")
-target_sources(bson 
-  PRIVATE 
+add_library(emeralddb "")
+target_sources(emeralddb
+  PRIVATE
+  "include/emeralddb/core.hpp" 
+  "oss/ossSocket.cpp"
+  "include/emeralddb/ossSocket.hpp"
   "bson/base64.cpp"
   "bson/base64.h"
   "bson/bsonobj.cpp"
@@ -58,7 +62,7 @@ target_sources(bson
   "bson/time_support.h")
 
 include_directories(${Boost_INCLUDE_DIRS})
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(edb main.cpp)
 
 if(BSON_BUILD_TESTS)
     message("enable bson build tests") 
