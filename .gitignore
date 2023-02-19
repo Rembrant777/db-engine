@@ -35,3 +35,5 @@
 /cmake-repo/01-basic/E-installing/cmake-build-debug/
 .idea
 .idea/*
+./db-repo/build/*
+./db-repo/third_party/*
