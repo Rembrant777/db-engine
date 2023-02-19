@@ -4,6 +4,8 @@
 #include <iostream>
 #include <boost/shared_ptr.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/scoped_array.hpp>
+#include <boost/intrusive_ptr.hpp>
 
 int main(int argc, char *argv[]) {
     std::cout << "Hello 3rd Party Library!" << std::endl;
@@ -13,6 +15,7 @@ int main(int argc, char *argv[]) {
 
     // trivial use of boost filesystem
     boost::filesystem::path path = "/usr/bin";
+    boost::scoped_array<unsigned char> decode;
     if (path.is_relative()) {
         std::cout << "Path is relative" << std::endl;
     } else {

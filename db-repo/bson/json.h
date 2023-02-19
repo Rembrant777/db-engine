@@ -18,8 +18,8 @@
 
 #pragma once
 
+#include <boost/noncopyable.hpp>
 #include "bson.h"
-
 namespace bson {
 
     /** Create a BSONObj from a JSON <http://www.json.org> string.  In addition

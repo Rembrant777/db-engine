@@ -18,6 +18,7 @@
 #pragma once
 
 #include <boost/intrusive_ptr.hpp>
+#include <boost/noncopyable.hpp>
 #include <set>
 #include <list>
 #include <vector>
