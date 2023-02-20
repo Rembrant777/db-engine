@@ -7,15 +7,15 @@ on:
         branches:  [db-init]
 jobs:
     macos:
-        runs-on: macos-latest 
+        runs-on: macos-latest
         steps:
-        - name: Checkout 
-          uses: actions/checkout@v2 
-        - name: Install Dependencies 
+        - name: Checkout
+          uses: actions/checkout@v2
+        - name: Install Dependencies
           run: |
-              brew install boost 
-        - name: Configure 
+              brew install boost
+        - name: Configure
           run: |
               cd db-repo
-              echo "${pwd}" && ls 
+              echo "${pwd}" && ls
               sh ./build.sh
