@@ -49,7 +49,7 @@ _ossSocket::_ossSocket(const char *pHostname, unsigned int port, int timeout) {
     memset(&_sockAddress, 0, sizeof(sockaddr_in)); 
     memset(&_sockAddress, 0, sizeof(sockaddr_in)); 
     _peerAddressLen = sizeof(_peerAddress); 
-    _sockAddressLen = sizeof(_sockAddress); 
+    _addressLen = sizeof(_sockAddress); 
     if ( (hp == gethostbyname(pHostname))) {
         _sockAddress.sin_addr.s_addr = *((int*)hp->h_addr_list[0]); 
     } else {
@@ -72,13 +72,13 @@ _ossSocket::_ossSocket(int *sock, int timeout) {
     // extract peer's socket address from an existing sock 
     rc = getsockname(_fd, (sockaddr*)&_sockAddress, &_addressLen); 
     if (rc) {
-        printf("Failed to get sock name, errorno. = %d", SOCK_GETLASTERROR); 
+        printf("Failed to get sock name, errorno. = %d", SOCKET_GETLASTERROR); 
         _init = false;
     } else {
         rc = getpeername(_fd, (sockaddr*)&_peerAddress, &_peerAddressLen); 
         if (rc) {
             // failed to get peer sock
-            printf("Failed to get peer name, errorno.=%d", SOCK_GETLASTERROR);  
+            printf("Failed to get peer name, errorno.=%d", SOCKET_GETLASTERROR);  
         }
     }
 }
@@ -94,7 +94,7 @@ int ossSocket::initSocket() {
     memset(&_peerAddress, 0, sizeof(sockaddr_in));
     _peerAddressLen = sizeof(_peerAddress); 
     _fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);  
-    if (-1 == fd) {
+    if (-1 == _fd) {
         // connect failed 
         printf("Failed to initialize socket, error = %d", SOCKET_GETLASTERROR);  
         rc = EDB_NETWORK; 
@@ -147,7 +147,7 @@ int ossSocket::setSocketLi(int lOnOff, int linger) {
 
 
 // set address 
-void ossSocket::SetAddress(const char *pHostname, unsigned int port) {
+void ossSocket::setAddress(const char *pHostname, unsigned int port) {
     struct hostent *hp; 
     memset(&_sockAddress, 0, sizeof(sockaddr_in)) ; 
     memset(&_sockAddress, 0, sizeof(sockaddr_in)); 
@@ -158,7 +158,7 @@ void ossSocket::SetAddress(const char *pHostname, unsigned int port) {
    if (( hp = gethostbyname(pHostname))) {
      _sockAddress.sin_addr.s_addr = *((int*)hp->h_addr_list[0]); 
    } else {
-       _sockAddress.sin_addr.sin_addr = inet_addr(pHostname); 
+       _sockAddress.sin_addr.s_addr = inet_addr(pHostname); 
    }
 
    _sockAddress.sin_port = htons(port);
@@ -193,7 +193,7 @@ int ossSocket::bind_listen() {
     if (rc) {
         // if faield go to error 
         printf("Failed to listen socket, rc = %d", SOCKET_GETLASTERROR);
-        rc = EDB_ERROR; 
+        rc = EDB_NETWORK; 
     }
    
 done:
@@ -228,7 +228,7 @@ int ossSocket::send(const char *pMsg, int len, int timeout, int flags) {
    while (true) {
        FD_ZERO(&fds); 
        FD_SET(_fd, &fds); 
-       rc = select(maxFD + 1, NULL, &fds, NULL, timeout >= 0?maxSelectTime:NULL); 
+       rc = select(maxFD + 1, NULL, &fds, NULL, timeout >= 0 ? &maxSelectTime:NULL); 
        if (0 == rc) {
            // timeout 
            rc = EDB_TIMEOUT; 
@@ -244,7 +244,7 @@ int ossSocket::send(const char *pMsg, int len, int timeout, int flags) {
            rc = EDB_NETWORK; 
            goto error; 
        }
-       if (FD_ISSET(_fd, &fd)) {
+       if (FD_ISSET(_fd, &fds)) {
            // check whether current _fd is read, if so break looping 
            break;  
        }
@@ -257,7 +257,7 @@ int ossSocket::send(const char *pMsg, int len, int timeout, int flags) {
        // The EPIPE error is still return 
        rc = ::send(_fd, pMsg, len, MSG_NOSIGNAL | flags); 
        if (-1 == rc) {
-           printf("Failed to send, rc = %d", SOCKET_GETLASTERROR");
+           printf("Failed to send, rc = %d", SOCKET_GETLASTERROR);
            rc = EDB_NETWORK; 
            goto error; 
        }
@@ -293,7 +293,7 @@ bool ossSocket::isConnected() {
 #define MAX_RECV_RETRIES 5 
 
 // recv method 
-int ossSocket:recv(char *pMsg, int len, int timeout, int flags) {
+int ossSocket::recv(char *pMsg, int len, int timeout, int flags) {
     int rc = EDB_OK; 
     int retries = 0; 
     int maxFD = _fd; 
@@ -302,13 +302,13 @@ int ossSocket:recv(char *pMsg, int len, int timeout, int flags) {
    
     maxSelectTime.tv_sec = timeout / 1000000; 
     maxSelectTime.tv_usec = timeout % 1000000; 
-    whie (true) {
+    while (true) {
        // clean fd_set
        FD_ZERO (&fds);
 
        // set fd_set by given _fd 
        FD_SET(_fd, &fds); 
-       rc = select(maxFD + 1, &fds, NULL, NULL, timeout >= 0 &maxSelectTime:NULL);  
+       rc = select(maxFD + 1, &fds, NULL, NULL, timeout >= 0 ? &maxSelectTime:NULL);  
        if (0 == rc) {
            rc = EDB_TIMEOUT; 
            goto done; 
@@ -329,6 +329,48 @@ int ossSocket:recv(char *pMsg, int len, int timeout, int flags) {
        }
     }
     // if we get here means select is ok continue with the recv data logic   
-   
+    while (len > 0) {
+        rc = ::recv(_fd, pMsg, len, MSG_NOSIGNAL | flags); 
+        if (rc > 0) {
+            if (flags & MSG_PEEK) {
+                // if we just want to peek one piece of message it is ok when rc > 0
+                goto done;  
+            }
+            // recv data 
+            // len is total recv data length, let len - rc means there still remains (len - rc) data to be received  
+            len -= rc; 
+            // pMsg is a buffer pointer type of char, it points to a buffer space to store the received data content 
+            // let pMsg += rc means move the pointer(rc * sizeof(char)) bytes pointed netx buffer address to store gonna received data content 
+            pMsg += rc; 
+        } else if (rc == 0) {
+          // if rc == 0 it means that remote communication peer already exit/shutdown 
+          // print log and return with return code 
+          printf("Peer unexpected shutdown");
+          rc = EDB_NETWORK_CLOSE; 
+          goto error; 
+        } else {
+          // if rc < 0 it means the connection got network error print error log and then return with error return code 
+          rc = SOCKET_GETLASTERROR; 
+          if ((EAGAIN == rc || EWOULDBLOCK == rc) && _timeout > 0) {
+              printf("Recv() timeout: rc = %d", rc);
+              rc = EDB_NETWORK;  
+              goto error; 
+          }
+          // if rc == EINTR means this time's recv data failed caused by system interruption 
+          // under this condition consume one times of retries value continue to recv data 
+          if ((EINTR == rc)  && (retries < MAX_RECV_RETRIES)) {
+              retries++; 
+              continue; 
+          }
+          printf("Recv() Failed: rc = %d", rc);
+          rc = EDB_NETWORK; 
+          goto error; 
+        } 
+    } // while 
+    rc = EDB_OK; 
+done:
+    return rc; 
+error:
+    goto done; 
 }
  

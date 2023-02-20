@@ -122,7 +122,10 @@ public:
 
   // get self socket address (address will be stored inside the buffer pointed by pAddress, and buffer allocation capacity is set by the 2nd parameter: length)
   // ret: status code 
-  int getLocalAdress(char *pAddress, unsigned int length); 
+  int getLocalAdress(char *pAddress, unsigned int length);
+
+  // is connection alive 
+  bool isConnected();  
   
   // set timeout in seconds 
   int setTimeout(int seconds); 
