@@ -1,10 +1,10 @@
 name: db-engine
 
 on:
-    push: 
+    push:
         branches: [db-init]
-    pull_request: 
-        branches: [db-init]
+    pull_request:
+        branches:  [db-init]
 jobs:
     macos:
         runs-on: macos-latest
