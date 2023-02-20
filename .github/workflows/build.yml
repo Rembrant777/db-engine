@@ -3,7 +3,7 @@ name: db-engine
 on:
     push:
         branches: [db_init]
-    pull_requests:
+    pull_request:
         branches: [db_init]
 jobs:
     build:
