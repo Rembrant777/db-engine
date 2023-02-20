@@ -50,7 +50,7 @@ _ossSocket::_ossSocket(const char *pHostname, unsigned int port, int timeout) {
     memset(&_sockAddress, 0, sizeof(sockaddr_in)); 
     _peerAddressLen = sizeof(_peerAddress); 
     _addressLen = sizeof(_sockAddress); 
-    if ( (hp == gethostbyname(pHostname))) {
+    if ( (hp = gethostbyname(pHostname))) {
         _sockAddress.sin_addr.s_addr = *((int*)hp->h_addr_list[0]); 
     } else {
         _sockAddress.sin_addr.s_addr = inet_addr(pHostname); 
@@ -373,4 +373,190 @@ done:
 error:
     goto done; 
 }
+
+int ossSocket::connect () {
+    int rc = EDB_OK; 
+    rc = ::connect(_fd, (struct sockaddr*) &_sockAddress, _addressLen); 
+    if (rc) {
+        printf("Failed to connect, rc = %d", SOCKET_GETLASTERROR); 
+        rc = EDB_NETWORK;  
+        goto error;  
+    }
+    rc = getsockname(_fd, (sockaddr*) &_sockAddress, &_addressLen);
+    if (rc) {
+        printf("Failed to get local address, rc = %d", rc);
+        rc = EDB_NETWORK; 
+        goto error;  
+    }
+
+    // get peer sock address 
+    rc = getsockname(_fd, (sockaddr*) &_peerAddress, &_peerAddressLen); 
+    if (rc) {
+       printf("Failed to get peer address, rc = %d", rc); 
+       rc = EDB_NETWORK; 
+       goto error; 
+    }
+done: 
+    return rc; 
+error: 
+    printf("ossSocket#connect goe error code %d", rc); 
+    goto done; 
+}
+
+// method to close connection && release file descriptor 
+void ossSocket::close() {
+    if (_init) {
+        int i = 0; 
+        i = ::close(_fd); 
+        if (i < 0) {
+            i = -1;  
+        }
+        _init = false; 
+    }
+}
+
+// accept create a connection and based on connection create a new file descriptor 
+int ossSocket::accept(int *sock, struct sockaddr *addr, socklen_t *addrlen, int timeout) {
+    int rc = EDB_OK; 
+    int maxFD = _fd; 
+    struct timeval maxSelectTime; 
  
+    fd_set fds; 
+    maxSelectTime.tv_sec = timeout / 1000000; 
+    maxSelectTime.tv_usec = timeout % 1000000; 
+
+    while (true) {
+        FD_ZERO(&fds); 
+        FD_SET(_fd, &fds);
+        rc = select(maxFD + 1, &fds, NULL, NULL, timeout >= 0 ? &maxSelectTime : NULL); 
+
+        // 0 means timeout 
+        if (0 == rc) {
+            *sock = 0; 
+            rc = EDB_TIMEOUT; 
+            goto done;  
+        }
+
+        // rc < 0 means got something error 
+        if (0 > rc) {
+            rc = SOCKET_GETLASTERROR; 
+            // if rc == EINTR it is failed caused by system internal interuption just contine 
+            if (EINTR == rc) {
+                continue; 
+            }
+            printf("Failed to select from socket, rc = %d", SOCKET_GETLASTERROR);
+            goto error; 
+        }
+
+        // if the socket we interested is not receiving anything just continue 
+        if (FD_ISSET(_fd, &fds)) {
+            break;  
+        }
+    } // while 
+
+    rc = EDB_OK; 
+    *sock = ::accept(_fd, addr, addrlen); 
+    if (-1 == *sock) {
+        // got something wrong when invoking accept 
+        printf("Failed to accept socket, rc = %d", SOCKET_GETLASTERROR); 
+        rc = EDB_NETWORK; 
+        goto error; 
+    } 
+done:
+    return rc; 
+error: 
+    printf("ossSocket#accept got error return code = %d", rc);
+    goto done; 
+}
+
+// disable nagle 
+int ossSocket::disableNagle() {
+    int rc = EDB_OK; 
+    int temp = 1; 
+    rc = setsockopt(_fd, IPPROTO_TCP, TCP_NODELAY, (char *) &temp, sizeof(int)); 
+    if (rc) {
+        printf("Failed to setsockopt, rc = %d", SOCKET_GETLASTERROR); 
+    }
+    return rc; 
+}
+
+
+// extract port number from given socket address 
+unsigned int ossSocket::_getPort(sockaddr_in *addr) {
+    return ntohs(addr->sin_port);
+}
+
+int ossSocket::_getAddress(sockaddr_in *addr, char *pAddress, unsigned int length) {
+    int rc = EDB_OK; 
+    length = length < NI_MAXHOST ? length : NI_MAXHOST; 
+    rc = getnameinfo((struct sockaddr*) addr, sizeof(sockaddr), pAddress, length, NULL, 0, NI_NUMERICHOST); 
+    if (rc) {
+        printf("Failed to getnameinfo rc = %d", SOCKET_GETLASTERROR); 
+        rc = EDB_NETWORK; 
+        goto error; 
+    }
+done: 
+    return rc; 
+error:
+    printf("ossSocket#_getAddress return error code = %d", rc);  
+    goto done; 
+}
+
+
+// get peer port number 
+unsigned int ossSocket::getPeerPort() {
+    return _getPort(&_peerAddress); 
+}
+
+// get local address 
+int ossSocket::getLocalAddress(char *pAddress, unsigned int length)  {
+    return _getAddress(&_sockAddress, pAddress, length); 
+}
+
+// get peer address 
+int ossSocket::getPeerAddress(char * pAddress, unsigned int length) {
+    return _getAddress(&_peerAddress, pAddress, length); 
+}
+
+// set timeout 
+int ossSocket::setTimeout(int seconds) {
+    int rc = EDB_OK; 
+    struct timeval tv; 
+    tv.tv_sec = seconds; 
+    tv.tv_usec = 0; 
+
+    // in windows system ms will be taken as parameter 
+    // in unix/linux system timeval will be taken as the parameter 
+    rc = setsockopt(_fd, SOL_SOCKET, SO_RCVTIMEO, (char*) &tv, sizeof(tv)); 
+
+    if (rc) {
+        printf("Failed to setsockopt, rc = %d", SOCKET_GETLASTERROR); 
+    }
+    
+    rc = setsockopt(_fd, SOL_SOCKET, SO_SNDTIMEO, (char*) &tv, sizeof(tv)); 
+
+    if (rc) {
+        printf("Failed to setsockopt, rc = %d", SOCKET_GETLASTERROR);  
+    }
+
+    return rc; 
+}
+
+// get local hostname
+int _ossSocket::getHostName(char *pName, unsigned int length) {
+    return gethostname(pName, length);    
+}
+
+// get port number from given service name 
+int _ossSocket::getPort(const char *pServiceName, unsigned short &port) {
+    int rc = EDB_OK; 
+    struct servent *servinfo; 
+    servinfo = getservbyname(pServiceName, "tcp"); 
+    if (!servinfo) {
+        // retrieved servinfo struct is NULL
+        port = atoi(pServiceName); 
+    } else {
+        port = (unsigned short) ntohs(servinfo->s_port); 
+    }
+    return rc; 
+}
