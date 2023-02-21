@@ -84,7 +84,7 @@ _ossSocket::_ossSocket(int *sock, int timeout) {
 }
 
 // -- init socket 
-int ossSocket::initSocket() {
+int _ossSocket::initSocket() {
     int rc = EDB_OK; 
     if (_init) {
         // ossSocket init ok 
@@ -134,7 +134,7 @@ error:
         When using this feature of the SO_LINGER option, it is important for the applicationt to check the return value from close, because if the linger time
         expires before the remaining data is sent and acknowledged, close returns EWOULDBLOCK and any remaining data in the send buffer is discarded. 
 */ 
-int ossSocket::setSocketLi(int lOnOff, int linger) {
+int _ossSocket::setSocketLi(int lOnOff, int linger) {
     int rc = EDB_OK; 
 
     struct linger _linger; 
@@ -147,7 +147,7 @@ int ossSocket::setSocketLi(int lOnOff, int linger) {
 
 
 // set address 
-void ossSocket::setAddress(const char *pHostname, unsigned int port) {
+void _ossSocket::setAddress(const char *pHostname, unsigned int port) {
     struct hostent *hp; 
     memset(&_sockAddress, 0, sizeof(sockaddr_in)) ; 
     memset(&_sockAddress, 0, sizeof(sockaddr_in)); 
@@ -167,7 +167,7 @@ void ossSocket::setAddress(const char *pHostname, unsigned int port) {
 
 
 // bind listen 
-int ossSocket::bind_listen() {
+int _ossSocket::bind_listen() {
     int rc = EDB_OK; 
     int temp = 1;
 
@@ -210,7 +210,7 @@ error:
  @param timeout: connection timeout 
  @param flags: 
 */
-int ossSocket::send(const char *pMsg, int len, int timeout, int flags) {
+int _ossSocket::send(const char *pMsg, int len, int timeout, int flags) {
     int rc = EDB_OK; 
     int maxFD = _fd; 
     struct timeval maxSelectTime; 
@@ -276,7 +276,7 @@ error:
 
 
 // method justify whether socket connection still alive 
-bool ossSocket::isConnected() {
+bool _ossSocket::isConnected() {
    int rc = EDB_OK; 
    // send content len = 0 to peer 
    rc = ::send(_fd, "", 0, MSG_NOSIGNAL); 
@@ -293,7 +293,7 @@ bool ossSocket::isConnected() {
 #define MAX_RECV_RETRIES 5 
 
 // recv method 
-int ossSocket::recv(char *pMsg, int len, int timeout, int flags) {
+int _ossSocket::recv(char *pMsg, int len, int timeout, int flags) {
     int rc = EDB_OK; 
     int retries = 0; 
     int maxFD = _fd; 
@@ -374,7 +374,7 @@ error:
     goto done; 
 }
 
-int ossSocket::connect () {
+int _ossSocket::connect () {
     int rc = EDB_OK; 
     rc = ::connect(_fd, (struct sockaddr*) &_sockAddress, _addressLen); 
     if (rc) {
@@ -404,7 +404,7 @@ error:
 }
 
 // method to close connection && release file descriptor 
-void ossSocket::close() {
+void _ossSocket::close() {
     if (_init) {
         int i = 0; 
         i = ::close(_fd); 
@@ -416,7 +416,7 @@ void ossSocket::close() {
 }
 
 // accept create a connection and based on connection create a new file descriptor 
-int ossSocket::accept(int *sock, struct sockaddr *addr, socklen_t *addrlen, int timeout) {
+int _ossSocket::accept(int *sock, struct sockaddr *addr, socklen_t *addrlen, int timeout) {
     int rc = EDB_OK; 
     int maxFD = _fd; 
     struct timeval maxSelectTime; 
@@ -470,7 +470,7 @@ error:
 }
 
 // disable nagle 
-int ossSocket::disableNagle() {
+int _ossSocket::disableNagle() {
     int rc = EDB_OK; 
     int temp = 1; 
     rc = setsockopt(_fd, IPPROTO_TCP, TCP_NODELAY, (char *) &temp, sizeof(int)); 
@@ -482,11 +482,11 @@ int ossSocket::disableNagle() {
 
 
 // extract port number from given socket address 
-unsigned int ossSocket::_getPort(sockaddr_in *addr) {
+unsigned int _ossSocket::_getPort(sockaddr_in *addr) {
     return ntohs(addr->sin_port);
 }
 
-int ossSocket::_getAddress(sockaddr_in *addr, char *pAddress, unsigned int length) {
+int _ossSocket::_getAddress(sockaddr_in *addr, char *pAddress, unsigned int length) {
     int rc = EDB_OK; 
     length = length < NI_MAXHOST ? length : NI_MAXHOST; 
     rc = getnameinfo((struct sockaddr*) addr, sizeof(sockaddr), pAddress, length, NULL, 0, NI_NUMERICHOST); 
@@ -504,22 +504,22 @@ error:
 
 
 // get peer port number 
-unsigned int ossSocket::getPeerPort() {
+unsigned int _ossSocket::getPeerPort() {
     return _getPort(&_peerAddress); 
 }
 
 // get local address 
-int ossSocket::getLocalAddress(char *pAddress, unsigned int length)  {
+int _ossSocket::getLocalAddress(char *pAddress, unsigned int length)  {
     return _getAddress(&_sockAddress, pAddress, length); 
 }
 
 // get peer address 
-int ossSocket::getPeerAddress(char * pAddress, unsigned int length) {
+int _ossSocket::getPeerAddress(char * pAddress, unsigned int length) {
     return _getAddress(&_peerAddress, pAddress, length); 
 }
 
 // set timeout 
-int ossSocket::setTimeout(int seconds) {
+int _ossSocket::setTimeout(int seconds) {
     int rc = EDB_OK; 
     struct timeval tv; 
     tv.tv_sec = seconds; 
