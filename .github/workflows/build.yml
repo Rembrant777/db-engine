@@ -1,21 +1,25 @@
-name: builddb
+name: CMake
 
 on:
-    push:
-        branches: [db-init]
-    pull_request:
-        branches:  [db-init]
+  push:
+    branches: [ "db_init" ]
+  pull_request:
+    branches: [ "db_init" ]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
 jobs:
-    macos:
-        runs-on: macos-latest
-        steps:
-        - name: Checkout
-          uses: actions/checkout@v2
-        - name: Install Dependencies
-          run: |
-              brew install boost
-        - name: Configure
-          run: |
-              cd db-repo
-              echo "${pwd}" && ls
-              sh ./build.sh
+  build:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: build db-repo
+      working-directory: ${{github.workspace}}/db-repo
+      run: echo "${pwd}" && sh ./build.sh
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      # Execute tests defined by the CMake configuration.
+      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+      run: echo "run test"
