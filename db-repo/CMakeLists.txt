@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.25)
 project(emeralddb VERSION 1.0.0 LANGUAGES C CXX)
 enable_language(C)
 enable_language(CXX)
-
 set(CMAKE_CXX_FLAGS ${CMAKE_FLAGS} "-std=c++11")
 
 # options 
@@ -11,17 +10,43 @@ option(EMERALDDB_BUILD_TESTS "Build emeralddb's unit tests" OFF)
 option(EMERALDDB_BUILD_BENCHMARKS "Build emeralddb's benchmarks" OFF)
 option(EMERALDDB_INSTALL "Install emeralddb's header and library" OFF)
 
-# set basic dirs 
-set(EMERALDDB_PUBLIC_INCLUDE_DIR "include/emeralddb")
-
-
+# set boost include header dir && lib dir 
 set(BOOST_INCLUDE_DIR "/usr/local/include")
 set(BOOST_LIB_DIR "/usr/local/lib")
 
-find_package(Boost REQUIRED COMPONENTS program_options filesystem)
+# set basic dirs && set edb include header dir 
+set(EMERALDDB_PUBLIC_INCLUDE_DIR "include/emeralddb")
 include_directories("${EMERALDDB_PUBLIC_INCLUDE_DIR}")
+include_directories(${Boost_INCLUDE_DIRS})
+include_directories(${BOOST_INCLUDE_DIR})
 
-# create library based on bson source codes  
+message("begin include FetchContent")
+include(FetchContent)
+FetchContent_Declare(
+    googletest 
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG 
+    OVERRIDE_FIND_PACKAGE
+)
+message("FetchContent make available googletest")
+FetchContent_MakeAvailable(googletest)
+
+if (TARGET GTest::gtest_main)
+    message("Target was found")
+endif()
+message("begin find package of gtest")
+find_package(GTest 1.12.1 REQUIRED)
+
+if (GTest_FOUND) 
+    message("google test found")
+endif(GTest_FOUND)
+
+
+
+# find boost and find boost's program_options & filesystem modules  
+find_package(Boost REQUIRED COMPONENTS program_options filesystem)
+
+# create emeralddb as a library file in this lib contains all emeralddb source, header file and bsonsource and header files 
 add_library(emeralddb "")
 target_sources(emeralddb
   PRIVATE
@@ -61,10 +86,9 @@ target_sources(emeralddb
   "bson/stringdata.h"
   "bson/time_support.h")
 
-include_directories(${Boost_INCLUDE_DIRS})
 add_executable(edb main.cpp)
 
-if(BSON_BUILD_TESTS)
+if(ENABLE_UNIT_TESTS)
     message("enable bson build tests") 
     enable_testing()
     set(gtest_force_shared_ctr ON CACHE BOOL "" FORCE)
@@ -89,5 +113,5 @@ if(BSON_BUILD_TESTS)
         "bson/bson_tests.cc"
     )
     target_link_libraries(bson_tests bson gmock  gtest_main)
-endif(BSON_BUILD_TESTS)
+endif(ENABLE_UNIT_TESTS)
 
