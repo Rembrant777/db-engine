@@ -23,6 +23,7 @@ endif()
 add_subdirectory(bson)
 add_subdirectory(core)
 add_subdirectory(oss)
+add_subdirectory(test)
 enable_testing()
 
 # create emeralddb as a library file in this lib contains all emeralddb source, header file and bsonsource and header files 
