@@ -12,7 +12,9 @@ if (NOT GTest_FOUND)
   set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
   FetchContent_MakeAvailable(gtest)
 else (NOT GTest_FOUND)
-  message("Gtest Root Found"${GTEST_ROOT}) 
+  message("Gtest Root Found"${GTEST_ROOT})
+  include_directories(${GTEST_INCLUDE_DIRS}) 
+  include_directories(${GTEST_MAIN_INCLUDE_DIRS}) 
 endif()
 
 # after install check GTest again 
