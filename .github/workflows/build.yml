@@ -2,12 +2,8 @@ name: CMake
 
 on: [push, pull_request]
 
-env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Release
-
 jobs:
-  build:
+  build_wheels:
       name: Check on ${{ matrix.os }}
       env:
         boost_version: "1.75.0"
@@ -16,6 +12,7 @@ jobs:
         fail-fast: false
         matrix:
           os: [macos-latest]
+      
       steps:
         - name: Cancel previous runs on the same branch 
           if: ${{ github.ref != 'refs/heads/main' }}
