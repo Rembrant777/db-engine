@@ -15,8 +15,8 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v3
-    - name: build db-repo
-      working-directory: ${{github.workspace}}/db-repo
+    - name: build db-engine
+      working-directory: ${{github.workspace}}
       run: echo "${pwd}" && sh ./build.sh
     - name: Test
       working-directory: ${{github.workspace}}/build
