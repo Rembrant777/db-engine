@@ -16,7 +16,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: build db-engine
-      working-directory: ${{github.workspace}}
       run: echo "${pwd}" && sh ./build.sh
     - name: Test
       working-directory: ${{github.workspace}}/build
