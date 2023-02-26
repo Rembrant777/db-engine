@@ -1,24 +1,45 @@
 name: CMake
 
-on:
-  push:
-    branches: [ "db_init" ]
-  pull_request:
-    branches: [ "db_init" ]
+on: [push, pull_request]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
 
 jobs:
-  build:
-    runs-on: macos-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: build db-engine
-      run: echo "${pwd}" && sh ./build.sh
-    - name: Test
-      working-directory: ${{github.workspace}}/build
-      # Execute tests defined by the CMake configuration.
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: echo "run test"
+  build_wheels:
+      name: Check on ${{ matrix.os }}
+      env:
+        boost_version: "1.75.0"
+      runs-on: ${{ matrix.os }}
+      strategy:
+        fail-fast: false
+        matrix:
+          os: [macos-latest]
+      steps:
+        - name: Cancel previous runs on the same branch 
+          if: ${{ github.ref != 'refs/heads/main' }}
+          uses: styfle/cancel-workflow-action@0.7.0
+          with:
+            access_token: ${{ github.com }}
+       - name: Set additional env value 
+         id: set_env_value
+         run: |
+           echo "workspace=$GITHUB_WORKSPACE" >> $GITHUB_ENV 
+           cd $GITHUB_WORKSPACE/../
+           echo "root_workspace=$(pwd)" >> $GITHUB_ENV
+           echo "boost_version_load=$(echo ${{ env.boost_version }} | sed "s/\./\_/g")" >> $GITHUB_ENV
+       - name: Checkout code
+           uses: actions/checkout@v2
+           with:
+             submodules: recursive
+       - name: Install boost
+           run: |
+             wget -nv -O boost.tar.gz https://boostorg.jfrog.io/artifactory/main/release/${{ env.boost_version }}/source/boost_${{ env.boost_version_load }}.tar.gz && 
+             tar xzf boost.tar.gz -C ~/ && 
+             ./bootstrap.sh && ./b2 && ./b2 install # install to default path /usr/local/lib, /usr/local/bin
+       - name: cmake and build 
+           run: |
+             echo $(pwd) && sh ./build.sh      
+       - name: Test
+           run: echo "run test"
