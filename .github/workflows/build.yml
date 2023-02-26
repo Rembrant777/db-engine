@@ -19,6 +19,13 @@ jobs:
       uses: actions/checkout@v2
       with:
         submodules: recursive
+    - name: Install gtest 
+      run: |
+          echo $(pwd) && 
+          wget -nv -O /tmp/gtest.tar.gz https://github.com/google/googletest/archive/refs/tags/v1.13.0.tar.gz
+          cd /tmp && tar -xzf gtest.tar.gz && 
+          rm ./gtest.tar.gz && cd googletest-1.13.0/ && make build && cd build && cmake ../ && make 
+          echo "gtest installed ok" && find /usr/local/include | grep 'gtest' && find /usr/local/lib | grep 'gtest'
     - name: Install boost
       run: |
          echo $(pwd) && 
