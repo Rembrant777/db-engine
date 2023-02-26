@@ -1,13 +1,13 @@
 add_library(oss)
 
-target_link_libraries(oss core)
-
 target_sources(oss
     PRIVATE
       ossSocket.cpp
     PUBLIC 
       ossSocket.hpp
 )
+
+target_link_libraries(oss core)
 
 target_include_directories(oss
     PUBLIC
