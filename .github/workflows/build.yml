@@ -21,8 +21,8 @@ jobs:
         submodules: recursive
     - name: Install boost
       run: |
-         wget -nv -O boost.tar.gz https://boostorg.jfrog.io/artifactory/main/release/${{ env.boost_version }}/source/boost_${{ env.boost_version_name }}.zip && 
-         tar xzf boosti_${{ env.boost_version }}.zip -C ~/ && 
+         wget -nv -O boost.zip https://boostorg.jfrog.io/artifactory/main/release/${{ env.boost_version }}/source/boost_${{ env.boost_version_name }}.zip && 
+         unzip boost.zip -C ~/ &&        
          ./bootstrap.sh && ./b2 && ./b2 install # install to default path /usr/local/lib, /usr/local/bin
     - name: cmake and build 
       run: |
