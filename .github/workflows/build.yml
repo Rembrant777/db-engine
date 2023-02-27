@@ -21,12 +21,12 @@ jobs:
         submodules: recursive
     - name: Install gtest 
       run: |
-          echo $(pwd) && 
-          wget -nv -O /tmp/googletest-1.13.0.tar.gz https://github.com/google/googletest/archive/refs/tags/v1.13.0.tar.gz && 
-          cd /tmp && tar xzf googletest-1.13.0.tar.gz && 
-          cd googletest-1.13.0/ && cp -r include/* /usr/local/include/ && ls /usr/local/include/  && 
-          mkdir -p ./build && cd build && cmake ../ && make && echo $(pwd) && cd ./lib/ && ls -a && mv *.a /usr/local/lib/ &&
-          ls /usr/local/include/gtest/* && ls /usr/local/lib/libgtest* && 
+          echo $(pwd) && \ 
+          wget -nv -O /tmp/googletest-1.13.0.tar.gz https://github.com/google/googletest/archive/refs/tags/v1.13.0.tar.gz && \
+          cd /tmp && tar xzf googletest-1.13.0.tar.gz &&  \
+          cd googletest-1.13.0/ && ls -a && cp -r include/* /usr/local/include/ && ls /usr/local/include/  && \
+          mkdir -p ./build && cd build && cmake ../ && make && echo $(pwd) && cd ./lib/ && ls -a && mv *.a /usr/local/lib/ && \
+          ls /usr/local/include/gtest/* && ls /usr/local/lib/libgtest* && \
           echo "gtest installed ok" 
     - name: Install boost
       run: |
