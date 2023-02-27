@@ -16,12 +16,14 @@
 #include "ossSocket.hpp"
 
 #include <iostream>
+#include <gtest/gtest.h>
 
-int main() {
-	int port = 8811; 
-	ossSocket sock(port); 
-	int rc = sock.initSocket(); 
-
-	std::cout << "rc value " << rc << std::endl; 
-        return 0; 
+TEST(ossSocket, initSocket) {
+  // todo: here add a random and port conflict checking method 
+  int EXPECTED_RET_CODE = 0; 
+  int port = 9900; 
+  ossSocket sock(port);
+  int rc = sock.initSocket(); 
+  ASSERT_EQ(rc, EXPECTED_RET_CODE);
 }
+
