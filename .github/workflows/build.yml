@@ -25,15 +25,15 @@ jobs:
           wget -nv -O /tmp/googletest-1.13.0.tar.gz https://github.com/google/googletest/archive/refs/tags/v1.13.0.tar.gz && 
           cd /tmp && tar xzf googletest-1.13.0.tar.gz &&  
           cd googletest-1.13.0/ && 
-          mkdir -p ./build && cd build && cmake ../ && make && echo $(pwd) && ls * && cd ./lib/ && ls * && mv *.a /usr/local/lib/ && 
-          ls /usr/local/include/gtest/* && ls /usr/local/lib/libg* && 
+          mkdir -p ./build && cd build && cmake ../ && make && echo $(pwd) && ls * && 
+          cd ./lib/ && ls * && mv *.a /usr/local/lib/ && 
+          ls /usr/local/lib/libg* && 
           echo "gtest installed ok" 
-    - name: Install boost
-      run: |
-         echo $(pwd) && 
-         wget -nv -O /tmp/boost.zip https://boostorg.jfrog.io/artifactory/main/release/${{ env.boost_version }}/source/boost_${{ env.boost_version_name }}.zip && 
-         cd /tmp && unzip boost.zip && 
-         cd boost_${{ env.boost_version_name }} && ./bootstrap.sh && ./b2 && ./b2 install # install to default path /usr/local/lib, /usr/local/bin
+    #- name: Install boost
+    #  run: |
+    #     echo $(pwd) && 
+    #     wget -nv -O /tmp/boost.zip https://boostorg.jfrog.io/artifactory/main/release/${{ env.boost_version }}/source/boost_${{ env.boost_version_name }}.zip && 
+    #     cd /tmp && unzip boost.zip &&  cd boost_${{ env.boost_version_name }} && ./bootstrap.sh && ./b2 && ./b2 install # install to default path /usr/local/lib, /usr/local/bin
     - name: cmake and build 
       run: |
          echo $(pwd) && sh ./build.sh      

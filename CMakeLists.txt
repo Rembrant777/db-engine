@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 project(emeralddb VERSION 1.0.0 LANGUAGES C CXX)
 
-
 # set the C++ standard 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -20,7 +19,7 @@ if(NOT GCOV_PATH)
     message(FATAL_ERROR "Code coverage analysis requires gcov!")
 endif()
 
-add_subdirectory(bson)
+#add_subdirectory(bson)
 add_subdirectory(core)
 add_subdirectory(oss)
 add_subdirectory(test)
