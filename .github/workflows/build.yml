@@ -38,6 +38,6 @@ jobs:
          echo $(pwd) && sh ./build.sh      
     - name: Test
       run: |
-      echo "begin run ut tests under dir "$(pwd) && 
+      echo "begin run ut tests " && 
       cd build/bin && ./unit_test_oss && 
       echo "finish run ut tests" 
