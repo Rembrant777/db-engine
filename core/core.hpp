@@ -50,23 +50,31 @@
 #define OSS_NEWLINE "\n"
 
 // error codes 
-#define EDB_OK 						 0
-#define EDB_IO						-1
+#define EDB_OK 					 0
+#define EDB_IO					-1
 #define EDB_INVALIDARG				-2
-#define EDB_PERM 					-3
-#define EDB_OOM 					-4
-#define EDB_SYS 					-5
+#define EDB_PERM 				-3
+#define EDB_OOM 				-4
+#define EDB_SYS 				-5
 #define EDB_PMD_HELP_ONLY			-6
-#define EDB_PMD_FORCE_SYSTEM_EDU 	-7
-#define EDB_TIMEOUT					-8
+#define EDB_PMD_FORCE_SYSTEM_EDU        	-7
+#define EDB_TIMEOUT				-8
 #define EDB_QUIESCED				-9
-#define EDB_EDU_INVAL_STATUS		-10
+#define EDB_EDU_INVAL_STATUS      		-10
 #define EDB_NETWORK 				-11
 #define EDB_NETWORK_CLOSE			-12
 #define EDB_APP_FORCE				-13
 #define EDB_IXM_ID_EXIST 			-14
 #define EDB_HEADER_INVALID			-15
-#define EDB_IXM_ID_NOT_EXIST    	-16
-#define EDB_NO_ID					-17
+#define EDB_IXM_ID_NOT_EXIST    	        -16
+#define EDB_NO_ID			        -17
 
+// network constants 
+#define OSS_MAX_PORT			      16666
+#define OSS_MIN_PORT			       5000
+#define OSS_PORT_CONFLICT_RETRY_TIMES	          6
+#define OSS_PORT_CONFLICT_WAIT_SECS		  5
+
+// common 
+#define OSS_BUFFER_LEN			       1024
 #endif 

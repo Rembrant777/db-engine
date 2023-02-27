@@ -136,7 +136,7 @@ public:
   // convert service name into port number 
   // ret: status code 
   // all system's service name stored in /etc/services file 
-  static int getPort(const char *pServiceName, unsigned short &port); 
+  static int getPort(const char *pServiceName, unsigned short &port);
 };
 
 typedef class _ossSocket ossSocket; 
