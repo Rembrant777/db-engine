@@ -1,6 +1,10 @@
 # Emeralddb
 [![.github/workflows/build.yml](https://github.com/Rembrant777/db-engine/actions/workflows/build.yml/badge.svg?branch=db_init)](https://github.com/Rembrant777/db-engine/actions/workflows/build.yml)
+
+
 [![License](https://img.shields.io/badge/license-%20AGPL--3-orange.svg)](./LICENSE)
+
 [![Actions Status](https://github.com/Rembrant777/db-engine/workflows/Build%20and%20Test/badge.svg)](https://github.com/Rembrant777/db-engine/actions)
+
 * [cmake](https://github.com/ttroy50/cmake-examples)
 * [db-engine](https://github.com/wangzhonnew/emeralddb)
