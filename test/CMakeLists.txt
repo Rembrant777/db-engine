@@ -1,24 +1,26 @@
 enable_testing()
-find_package(GTest)
+#ifind_package(GTest)
 
 if (NOT GTest_FOUND)
-  message("download and install gtest by cmake fetch content declare method")
-  include(FetchContent)
-  FetchContent_Declare(gtest 
-      QUIET
-      URL https://github.com/google/googletest/archive/refs/tags/v1.13.0.tar.gz
-  )
-  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-  set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
-  FetchContent_MakeAvailable(gtest)
-else (NOT GTest_FOUND)
-  message("Gtest Root Found"${GTEST_ROOT}) 
+  set(GTest_LOCAL_ROOT_DIR /usr/local/)
+  find_path(GTest_INCLUDE_DIR NAMES gtest PATHS ${GTest_LOCAL_ROOT_DIR}/include)
+  message("gtest include dir "${GTest_INCLUDE_DIR})
+  
+  find_library(GTest_LIBRARIES libgtest.a HINTS ${GTest_LOCAL_ROOT_DIR}/lib)
+  message("gtest libgtest.a dir: "${GTest_LIBRARIES})
+  
+  find_library(GTest_Main_LIBRARIES libgtest_main.a HINTS ${GTest_LOCAL_ROOT_DIR}/lib)
+  message("gtest libtest_main.a dir: "${GTest_Main_LIBRARIES})
+
+  include_directories(${GTest_INCLUDE_DIR})
+  include_directories(${GTest_LIBRARIES})
+  include_directories(${GTest_Main_LIBRARIES})
+else (NOT GTest_FOUND) 
+  message(FATAL "unit test module requires GTest!")
 endif()
 
-# after install check GTest again 
-find_package(GTest REQUIRED)
-
-if (NOT GTest_FOUND) 
+# if still not found exit print error and exit
+if (NOT GTest_FOUND AND NOT GTest_INCLUDE_DIR)
   message(FATAL "unit test module requires GTest!")
 endif()
 
@@ -27,6 +29,6 @@ add_executable(
     oss_test.cpp
 )
 
-target_link_libraries(unit_test_oss oss ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES})
+target_link_libraries(unit_test_oss oss ${GTest_LIBRARIES} ${GTest_Main_LIBRARIES})
 
-gtest_discover_tests(unit_test_oss)
+#gtest_discover_tests(unit_test_oss)
