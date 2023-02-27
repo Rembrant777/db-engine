@@ -24,7 +24,7 @@ jobs:
           echo $(pwd) && 
           wget -nv -O /tmp/googletest-1.13.0.tar.gz https://github.com/google/googletest/archive/refs/tags/v1.13.0.tar.gz && 
           cd /tmp && tar xzf googletest-1.13.0.tar.gz && 
-          cd googletest-1.13.0/ && mkdir -p ./build && cd build && cmake ../ && make && 
+          cd googletest-1.13.0/ && mkdir -p ./build && cd build && cmake ../ && make && echo $(pwd) && cd ./lib/ && ls -a && cd ../include/ && ls -a 
           echo "gtest installed ok" 
     - name: Install boost
       run: |
