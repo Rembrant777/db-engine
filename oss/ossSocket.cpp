@@ -560,3 +560,4 @@ int _ossSocket::getPort(const char *pServiceName, unsigned short &port) {
     }
     return rc; 
 }
+

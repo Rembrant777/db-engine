@@ -32,6 +32,5 @@ add_executable(
     oss_test.cpp
 )
 
-target_link_libraries(unit_test_oss oss ${GTest_LIBRARIES} ${GTest_Main_LIBRARIES} ${GMock_LIBRARIES} ${GMOck_Main_LIBRARIES})
+target_link_libraries(unit_test_oss oss core ${GTest_LIBRARIES} ${GTest_Main_LIBRARIES} ${GMock_LIBRARIES} ${GMOck_Main_LIBRARIES})
 
-#gtest_discover_tests(unit_test_oss)
