@@ -19,7 +19,7 @@ if(NOT GCOV_PATH)
     message(FATAL_ERROR "Code coverage analysis requires gcov!")
 endif()
 
-#add_subdirectory(bson)
+add_subdirectory(bson)
 add_subdirectory(core)
 add_subdirectory(oss)
 add_subdirectory(test)
