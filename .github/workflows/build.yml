@@ -27,7 +27,7 @@ jobs:
           cd googletest-1.13.0/ && 
           mkdir -p ./build && cd build && cmake ../ && make && echo $(pwd) && ls * && 
           cd ./lib/ && ls * && mv *.a /usr/local/lib/ && 
-          ls /usr/local/lib/libg* && ls /tmp/googletest-1.13.0/build 
+          ls /usr/local/lib/libg* && ls /tmp/googletest-1.13.0/include/ 
           echo "gtest installed ok" 
     #- name: Install boost
     #  run: |
