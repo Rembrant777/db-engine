@@ -77,7 +77,17 @@ public:
 
   // --- deconstructor --- 
   ~_ossSocket() {
-    close(); 
+    close();
+  }
+  
+  void operator delete(void* ptr, size_t) {
+      // release the allocated space pointed by the ptr 
+      std::cout << "delete ptr " << ptr << std::endl; 
+      free(ptr);
+      // if we only free the space the pointer points to ptr value will not reseted to the nullptr automatically
+      // we need reset the pointer to the nullptr by manual 
+      ptr = nullptr;  
+      std::cout << "delete ptr " << ptr << std::endl; 
   }
 
   // init socket 
@@ -130,6 +140,12 @@ public:
   // set timeout in seconds 
   int setTimeout(int seconds); 
 
+  // get inner defined init status  
+  int getInitStatus(); 
+
+  // get inner defined file descriptor 
+  int getFd(); 
+
   // get host name 
   static int getHostName(char *pHostname, unsigned int length);
 
@@ -140,8 +156,5 @@ public:
 };
 
 typedef class _ossSocket ossSocket; 
-
-
-
 
 #endif 

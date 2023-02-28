@@ -48,6 +48,57 @@ bool isPortOccupy(unsigned int port) {
    */
 }
 
+TEST(ossSocket, constructor1) {
+  unsigned int port = genRandomPort(); 
+  printf("test case of constructor1 get random port %d\n", port);
+  int timeout = 100;
+
+  ossSocket *sockPtr = new ossSocket(port, timeout);  
+  // ossSocket pointer cannot be nullptr after it points to the ossSocket instance  
+  ASSERT_NE(sockPtr, nullptr);
+ 
+  // when we invoke destructor function inner close method will be invoked 
+  sockPtr->~_ossSocket(); 
+  printf("here we got the ossSocket#_init value is %d\n", sockPtr->getInitStatus());
+  EXPECT_EQ(false, sockPtr->getInitStatus()); 
+  
+  // add a delete operations here and checkout whether the allocated memory is released correctly   
+  printf("here we call delete to release the allocated memory space for ossSocket\n"); 
+  delete sockPtr; 
+  sockPtr = nullptr;   
+  // here we checkout whether the sockPtr already the nullptr 
+  EXPECT_EQ(nullptr, sockPtr); 
+}
+
+TEST(ossSocket, constructor2) {
+  ossSocket *sockPtr = new ossSocket(); 
+
+  // oss socket pointer cannot be null pointer after it points to the new oss socket instance 
+  ASSERT_NE(sockPtr, nullptr); 
+
+  // try to get value from address and invoke inner methods like the object instance 
+  int fdRet = (*sockPtr).getFd(); 
+  // gt,lt,gte,lte
+  EXPECT_EQ(fdRet, 0); 
+
+  // call destructor methods 
+  (*sockPtr).~_ossSocket(); 
+  fdRet = (*sockPtr).getFd();
+   
+  // destructor method will invoke close method in which set the _fd to 0 
+  EXPECT_EQ(fdRet, 0);  
+
+  // release the space the pointer points to 
+  delete sockPtr; 
+  sockPtr = nullptr; 
+  EXPECT_EQ(nullptr, sockPtr); 
+  
+   // is NULL the same as the nullptr ? 
+   // i think nullptr is an encapsulated object in cpp instead of a memeory address defined like NULL 
+   // type miss match will raise an error in gtest inner methods 
+   // ASSERT_NE(NULL, nullptr);  
+}
+
 TEST(ossSocket, initSocket) {
   int retry = OSS_PORT_CONFLICT_RETRY_TIMES;  
   unsigned int port = genRandomPort(); 

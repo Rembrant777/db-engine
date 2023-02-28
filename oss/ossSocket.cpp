@@ -411,6 +411,7 @@ void _ossSocket::close() {
         if (i < 0) {
             i = -1;  
         }
+        _fd = 0; 
         _init = false; 
     }
 }
@@ -559,5 +560,13 @@ int _ossSocket::getPort(const char *pServiceName, unsigned short &port) {
         port = (unsigned short) ntohs(servinfo->s_port); 
     }
     return rc; 
+}
+
+int _ossSocket::getInitStatus() {
+  return _init; 
+}
+
+int _ossSocket::getFd() {
+  return _fd; 
 }
 
