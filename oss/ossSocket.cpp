@@ -98,7 +98,7 @@ namespace emeralddb {
         _fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);  
         if (-1 == _fd) {
             // connect failed 
-            printf("Failed to initialize socket, error = %d", SOCKET_GETLASTERROR);  
+            printf("Failed to initialize socket, error = %d\n", SOCKET_GETLASTERROR);  
             rc = EDB_NETWORK; 
             goto error; 
         }
@@ -106,7 +106,7 @@ namespace emeralddb {
         //  set timeout 
         setTimeout(_timeout);
     done:
-        printf("ossSocket#initSocket ret %d", rc);
+        printf("ossSocket#initSocket ret %d\n", rc);
         return rc; 
     error: 
        goto done; 
@@ -415,7 +415,16 @@ namespace emeralddb {
             }
             _fd = 0; 
             _init = false; 
+
+            // release sockaddr
+            if (&_sockAddress != nullptr) {
+              free(&_sockAddress);  
+            }
+            if (&_peerAddress != nullptr) { 
+              free(&_peerAddress); 
+            }
         }
+        printf("close oss socket \n"); 
     }
 
     // accept create a connection and based on connection create a new file descriptor 
@@ -509,6 +518,10 @@ namespace emeralddb {
     // get peer port number 
     unsigned int _ossSocket::getPeerPort() {
         return _getPort(&_peerAddress); 
+    }
+
+    unsigned int _ossSocket::getLocalPort() {
+      return _getPort(&_sockAddress); 
     }
 
     // get local address 

@@ -25,6 +25,10 @@
 #define OSS_MAX_HOSTNAME NI_MAXHOST 
 #define OSS_MAX_SERVICENAME NI_MAXSERV 
 
+#ifndef SOCKET
+typedef int SOCKET; 
+#endif 
+
 namespace emeralddb {
   namespace oss {
     class _ossSocket {
@@ -82,15 +86,6 @@ namespace emeralddb {
           close();
         }
   
-       void operator delete(void* ptr, size_t) {
-          // release the allocated space pointed by the ptr 
-          std::cout << "delete ptr " << ptr << std::endl; 
-          free(ptr);
-          // if we only free the space the pointer points to ptr value will not reseted to the nullptr automatically
-          // we need reset the pointer to the nullptr by manual 
-          ptr = nullptr;  
-          std::cout << "delete ptr " << ptr << std::endl; 
-        }
 
       // init socket 
       int initSocket(); 
@@ -156,6 +151,7 @@ namespace emeralddb {
       // all system's service name stored in /etc/services file 
       static int getPort(const char *pServiceName, unsigned short &port);
     }; 
+    
     typedef class _ossSocket ossSocket; 
   } // using namespace oss 
 }   // using namespace emeralddb 

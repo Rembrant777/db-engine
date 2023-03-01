@@ -33,15 +33,15 @@ public:
 protected: 
   virtual void SetUp() {
     cout << "before test" << endl; 
-    unsigned int _port = genRandomPort(); 
-    int _timeout = 6; 
-    ossPtr = new ossSocket(_port, _timeout); 
+    _port = genRandomPort(); 
+    _timeout = 6; 
+    ossPtr = getInstance(); 
   }
 
   virtual void TearDown() {
     cout << "after test" << endl; 
-    delete ossPtr; 
-    ossPtr = nullptr;
+    release(ossPtr);
+    ossPtr = nullptr; 
     ASSERT_EQ(nullptr, ossPtr); 
   }
 
@@ -50,34 +50,115 @@ protected:
      ASSERT_EQ(EDB_OK, ossPtr->initSocket()); 
      ASSERT_TRUE(ossPtr->getFd() > 0); 
      ASSERT_EQ(true, ossPtr->getInitStatus()); 
-     ossPtr->~_ossSocket(); 
-  }
 
-  void setSocketLi() {
-    cout << "test setSocketLi" << endl; 
-    EXPECT_EQ(0 ,0);  
+     unsigned int hostnameLen = sizeof(char) * 64; 
+     char *hostnamePtr = (char*) malloc(sizeof(char) * 64); 
+     int rc = ossPtr->getHostName(hostnamePtr, hostnameLen); 
+
+     ASSERT_EQ(rc, EDB_OK); 
+     ASSERT_TRUE(strlen(hostnamePtr) > 0 && strlen(hostnamePtr) < sizeof(char) * 64);  
+     free(hostnamePtr); 
+     hostnamePtr = nullptr; 
   }
 
   void socketServer() {
     cout << "test oss socket server setup scenario" << endl; 
-    EXPECT_EQ(0 ,0);  
+    // server side setup needs 2 steps
+    // step1 init socket and check ok 
+    ASSERT_EQ(EDB_OK, ossPtr->initSocket()); 
+
+    // step2 bind && listen, also print hostname and bind listen got bind ret value and check 
+    ASSERT_EQ(EDB_OK, ossPtr->bind_listen());
+    int hostLen = sizeof(char) * 64; 
+    char *hostnamePtr = (char*) malloc(hostLen); 
+    ASSERT_EQ(EDB_OK, (*ossPtr).getHostName(hostnamePtr, hostLen)); 
+    ASSERT_TRUE(hostnamePtr != nullptr && hostnamePtr[0] != '\0');   
+    int _port = (*ossPtr).getLocalPort(); 
+    cout << "setup server hostname [" << hostnamePtr << "] is listening to [" << _port << "]" << endl; 
   }
 
-  void socketClient() {
-    cout << "test oss socket client setup scenario" << endl; 
-    EXPECT_EQ(0 ,0);  
+    void release(ossSocket *ossPtr) {
+    if (ossPtr != nullptr) {
+      free(ossPtr);
+    }
   }
 
   void connect() {
-    cout << "test oss socket client setup and communication scenario" << endl;
-    EXPECT_EQ(0 ,0);  
+    cout << "test oss socket client and server connect scenario" << endl;
+    
+    ossSocket *ossServerPtr = getServerInstance(); 
+    ossSocket *ossClientPtr = getClientInstance(); 
+    ASSERT_TRUE(ossServerPtr != nullptr); 
+    ASSERT_TRUE(ossClientPtr != nullptr); 
+
+    // setup server 
+    ASSERT_EQ(EDB_OK, ossServerPtr->initSocket()); 
+    ASSERT_EQ(EDB_OK, ossServerPtr->bind_listen()); 
+    int serverHostnameLen = sizeof(char) * 64;  
+    char *serverHostname = (char*) malloc(serverHostnameLen); 
+    ASSERT_EQ(EDB_OK, (*ossServerPtr).getHostName(serverHostname, serverHostnameLen)); 
+    // retrieve setup server name 
+    ASSERT_TRUE(serverHostname != nullptr && serverHostname[0] != '\0'); 
+
+    int serverPort = (*ossServerPtr).getLocalPort(); 
+    cout << "server setup ok hostname [" << serverHostname << "] listening to [" << serverPort << "]" << endl; 
+    
+    // setup client 
+    ASSERT_EQ(EDB_OK, ossClientPtr->initSocket()); 
+    ossClientPtr->setAddress(serverHostname, serverPort); 
+    ASSERT_EQ(EDB_OK, ossClientPtr->connect()); 
+    ASSERT_EQ(EDB_OK, ossClientPtr->disableNagle()); 
+    int clientPort = (*ossClientPtr).getLocalPort(); 
+    int clientSideServerPort = (*ossClientPtr).getPeerPort(); 
+    int serverSideClientPort = (*ossServerPtr).getPeerPort(); 
+
+
+    // let server side wait and accept request from client side 
+    // here we got typedef int SOCKET defined in ossSocket.hpp 
+    // check from server side: accept correctly 
+    SOCKET s; 
+    int rc = (*ossServerPtr).accept((SOCKET*)&s, NULL, NULL);
+    ASSERT_EQ(EDB_OK, rc); 
+
+    // check form client side: connect correctly 
+    ASSERT_TRUE((*ossClientPtr).isConnected()); 
+
+    // release 
+    release(ossServerPtr); 
+    release(ossClientPtr); 
+  }
+
+  void communicate() {
+    cout << "test client side and server side connect and communicate scenario" << endl; 
+    ASSERT_EQ(0, 0);
   }
 
 private:
-  ossSocket* ossPtr; 
-  
+  unsigned int _port; 
+  int _timeout; 
+  ossSocket *ossPtr; 
+
+  ossSocket* getClientInstance() {
+    ossSocket *ossClientPtr = nullptr; 
+    ossClientPtr = new ossSocket(genRandomPort(), _timeout);
+    return ossClientPtr;  
+  }
+
+  ossSocket* getServerInstance() {
+    ossSocket *ossServerPtr = nullptr; 
+    ossServerPtr = new ossSocket(genRandomPort(), _timeout);
+    return ossServerPtr; 
+  }
+
+  ossSocket* getInstance() {
+    ossSocket *ossPtr = nullptr; 
+    ossPtr = new ossSocket(_port, _timeout); 
+    return ossPtr; 
+  }
+
   unsigned int genRandomPort() {
     time_t t; 
+    sleep(3); 
     srand((unsigned) time(&t)); 
     unsigned int ret = 0; 
     ret = rand() % (OSS_MAX_PORT - OSS_MIN_PORT + 1) + OSS_MIN_PORT; 
@@ -94,22 +175,16 @@ TEST_F(ossSocketTest, TestInitSocket) {
   initSocket(); 
 }
 
-TEST_F(ossSocketTest, test_setSocketLi) {
-  setSocketLi(); 
-}
-
-
-TEST_F(ossSocketTest, test_socketServerScenario) {
+TEST_F(ossSocketTest, test_socketServer) {
   socketServer(); 
 }
 
-
-TEST_F(ossSocketTest, test_socketClientScenario) {
-  socketClient(); 
+TEST_F(ossSocketTest, test_connect) {
+  connect(); 
 }
 
-TEST_F(ossSocketTest, test_serverClientCommunicationScenario) {
-  connect(); 
+TEST_F(ossSocketTest, test_communication) {
+  communicate(); 
 }
 
 
