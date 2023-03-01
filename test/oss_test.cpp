@@ -20,120 +20,172 @@
 #include <unistd.h>	
 #include <gtest/gtest.h>
 
+using namespace emeralddb::oss;
+using namespace std;
+using namespace testing;
 
-unsigned int genRandomPort() {
+
+class ossSocketTest : public Test {
+public:
+  ossSocketTest() {}
+  ~ossSocketTest() {}
+
+protected: 
+  virtual void SetUp() {
+    cout << "before test" << endl; 
+    _port = genRandomPort(); 
+    _timeout = 6; 
+    ossPtr = getInstance(); 
+  }
+
+  virtual void TearDown() {
+    cout << "after test" << endl; 
+    release(ossPtr);
+    ossPtr = nullptr; 
+    ASSERT_EQ(nullptr, ossPtr); 
+  }
+
+  void initSocket() {
+     cout << "test initSocket" << endl; 
+     ASSERT_EQ(EDB_OK, ossPtr->initSocket()); 
+     ASSERT_TRUE(ossPtr->getFd() > 0); 
+     ASSERT_EQ(true, ossPtr->getInitStatus()); 
+
+     unsigned int hostnameLen = sizeof(char) * 64; 
+     char *hostnamePtr = (char*) malloc(sizeof(char) * 64); 
+     int rc = ossPtr->getHostName(hostnamePtr, hostnameLen); 
+
+     ASSERT_EQ(rc, EDB_OK); 
+     ASSERT_TRUE(strlen(hostnamePtr) > 0 && strlen(hostnamePtr) < sizeof(char) * 64);  
+     free(hostnamePtr); 
+     hostnamePtr = nullptr; 
+  }
+
+  void socketServer() {
+    cout << "test oss socket server setup scenario" << endl; 
+    // server side setup needs 2 steps
+    // step1 init socket and check ok 
+    ASSERT_EQ(EDB_OK, ossPtr->initSocket()); 
+
+    // step2 bind && listen, also print hostname and bind listen got bind ret value and check 
+    ASSERT_EQ(EDB_OK, ossPtr->bind_listen());
+    int hostLen = sizeof(char) * 64; 
+    char *hostnamePtr = (char*) malloc(hostLen); 
+    ASSERT_EQ(EDB_OK, (*ossPtr).getHostName(hostnamePtr, hostLen)); 
+    ASSERT_TRUE(hostnamePtr != nullptr && hostnamePtr[0] != '\0');   
+    int _port = (*ossPtr).getLocalPort(); 
+    cout << "setup server hostname [" << hostnamePtr << "] is listening to [" << _port << "]" << endl; 
+  }
+
+    void release(ossSocket *ossPtr) {
+    if (ossPtr != nullptr) {
+      free(ossPtr);
+    }
+  }
+
+  void connect() {
+    cout << "test oss socket client and server connect scenario" << endl;
+    
+    ossSocket *ossServerPtr = getServerInstance(); 
+    ossSocket *ossClientPtr = getClientInstance(); 
+    ASSERT_TRUE(ossServerPtr != nullptr); 
+    ASSERT_TRUE(ossClientPtr != nullptr); 
+
+    // setup server 
+    ASSERT_EQ(EDB_OK, ossServerPtr->initSocket()); 
+    ASSERT_EQ(EDB_OK, ossServerPtr->bind_listen()); 
+    int serverHostnameLen = sizeof(char) * 64;  
+    char *serverHostname = (char*) malloc(serverHostnameLen); 
+    ASSERT_EQ(EDB_OK, (*ossServerPtr).getHostName(serverHostname, serverHostnameLen)); 
+    // retrieve setup server name 
+    ASSERT_TRUE(serverHostname != nullptr && serverHostname[0] != '\0'); 
+
+    int serverPort = (*ossServerPtr).getLocalPort(); 
+    cout << "server setup ok hostname [" << serverHostname << "] listening to [" << serverPort << "]" << endl; 
+    
+    // setup client 
+    ASSERT_EQ(EDB_OK, ossClientPtr->initSocket()); 
+    ossClientPtr->setAddress(serverHostname, serverPort); 
+    ASSERT_EQ(EDB_OK, ossClientPtr->connect()); 
+    ASSERT_EQ(EDB_OK, ossClientPtr->disableNagle()); 
+    int clientPort = (*ossClientPtr).getLocalPort(); 
+    int clientSideServerPort = (*ossClientPtr).getPeerPort(); 
+    int serverSideClientPort = (*ossServerPtr).getPeerPort(); 
+
+
+    // let server side wait and accept request from client side 
+    // here we got typedef int SOCKET defined in ossSocket.hpp 
+    // check from server side: accept correctly 
+    SOCKET s; 
+    int rc = (*ossServerPtr).accept((SOCKET*)&s, NULL, NULL);
+    ASSERT_EQ(EDB_OK, rc); 
+
+    // check form client side: connect correctly 
+    ASSERT_TRUE((*ossClientPtr).isConnected()); 
+
+    // release 
+    release(ossServerPtr); 
+    release(ossClientPtr); 
+  }
+
+  void communicate() {
+    cout << "test client side and server side connect and communicate scenario" << endl; 
+    ASSERT_EQ(0, 0);
+  }
+
+private:
+  unsigned int _port; 
+  int _timeout; 
+  ossSocket *ossPtr; 
+
+  ossSocket* getClientInstance() {
+    ossSocket *ossClientPtr = nullptr; 
+    ossClientPtr = new ossSocket(genRandomPort(), _timeout);
+    return ossClientPtr;  
+  }
+
+  ossSocket* getServerInstance() {
+    ossSocket *ossServerPtr = nullptr; 
+    ossServerPtr = new ossSocket(genRandomPort(), _timeout);
+    return ossServerPtr; 
+  }
+
+  ossSocket* getInstance() {
+    ossSocket *ossPtr = nullptr; 
+    ossPtr = new ossSocket(_port, _timeout); 
+    return ossPtr; 
+  }
+
+  unsigned int genRandomPort() {
     time_t t; 
+    sleep(3); 
     srand((unsigned) time(&t)); 
     unsigned int ret = 0; 
     ret = rand() % (OSS_MAX_PORT - OSS_MIN_PORT + 1) + OSS_MIN_PORT; 
     return ret; 
-}
-
-bool isPortOccupy(unsigned int port) {
-    return false; 
-    /*
-    char cmd_exec_buffer[OSS_BUFFER_LEN];
-    sprintf(cmd_exec_buffer, "netstat -an | grep %d", port);
-    int ret = system(cmd_exec_buffer);
-    printf("ret value %d\n", ret);
-    if (ret == 0) {
-        // not be occupied by other proces
-        printf("port %d with cmd ret %d not be occupied\n", port, ret);
-        return false;
-    } else {
-        // port is occupied 
-        printf("port %d with cmd ret %d already be occupied\n", port, ret);
-        return true; 
-    }
-   */
-}
-
-TEST(ossSocket, constructor1) {
-  unsigned int port = genRandomPort(); 
-  printf("test case of constructor1 get random port %d\n", port);
-  int timeout = 100;
-
-  ossSocket *sockPtr = new ossSocket(port, timeout);  
-  // ossSocket pointer cannot be nullptr after it points to the ossSocket instance  
-  ASSERT_NE(sockPtr, nullptr);
- 
-  // when we invoke destructor function inner close method will be invoked 
-  sockPtr->~_ossSocket(); 
-  printf("here we got the ossSocket#_init value is %d\n", sockPtr->getInitStatus());
-  EXPECT_EQ(false, sockPtr->getInitStatus()); 
-  
-  // add a delete operations here and checkout whether the allocated memory is released correctly   
-  printf("here we call delete to release the allocated memory space for ossSocket\n"); 
-  delete sockPtr; 
-  sockPtr = nullptr;   
-  // here we checkout whether the sockPtr already the nullptr 
-  EXPECT_EQ(nullptr, sockPtr); 
-}
-
-TEST(ossSocket, constructor2) {
-  ossSocket *sockPtr = new ossSocket(); 
-
-  // oss socket pointer cannot be null pointer after it points to the new oss socket instance 
-  ASSERT_NE(sockPtr, nullptr); 
-
-  // try to get value from address and invoke inner methods like the object instance 
-  int fdRet = (*sockPtr).getFd(); 
-  // gt,lt,gte,lte
-  EXPECT_EQ(fdRet, 0); 
-
-  // call destructor methods 
-  (*sockPtr).~_ossSocket(); 
-  fdRet = (*sockPtr).getFd();
-   
-  // destructor method will invoke close method in which set the _fd to 0 
-  EXPECT_EQ(fdRet, 0);  
-
-  // release the space the pointer points to 
-  delete sockPtr; 
-  sockPtr = nullptr; 
-  EXPECT_EQ(nullptr, sockPtr); 
-  
-   // is NULL the same as the nullptr ? 
-   // i think nullptr is an encapsulated object in cpp instead of a memeory address defined like NULL 
-   // type miss match will raise an error in gtest inner methods 
-   // ASSERT_NE(NULL, nullptr);  
-}
-
-TEST(ossSocket, initSocket) {
-  int retry = OSS_PORT_CONFLICT_RETRY_TIMES;  
-  unsigned int port = genRandomPort(); 
-  
-  while (retry > 0 && isPortOccupy(port)) {
-      sleep(OSS_PORT_CONFLICT_WAIT_SECS * 1L); 
-      port = genRandomPort(); 
-      retry--; 
   }
+}; 
 
-  ASSERT_EQ(false, isPortOccupy(port));
-  printf("#testInitSocket port: %d is not occupy\n", port); 
-  ossSocket sock(port);
-  int rc = sock.initSocket(); 
-  ASSERT_EQ(rc, EDB_OK); 
-  sock.close(); 
+// =============[ut signature]================ //
+// param1: unit test class name  
+// param2: test_${method_name} or test_${scenario}
+// =============[ut signature]================ //
+
+TEST_F(ossSocketTest, TestInitSocket) {
+  initSocket(); 
 }
 
-TEST(ossSocket, bind_listen) {
-  int retry = 10; 
-  unsigned int port = genRandomPort(); 
-
-  while (retry > 0 && isPortOccupy(port)) {
-      sleep(OSS_PORT_CONFLICT_RETRY_TIMES * 1L);
-      port = genRandomPort(); 
-      retry--;  
-  }
-  
-  ASSERT_EQ(false, isPortOccupy(port));
-  ossSocket sock(port); 
-  int rc = sock.initSocket(); 
-  ASSERT_EQ(rc, EDB_OK); 
-
-  rc = sock.bind_listen();
-  ASSERT_EQ(rc, EDB_OK);
-  sock.close(); 
+TEST_F(ossSocketTest, test_socketServer) {
+  socketServer(); 
 }
+
+TEST_F(ossSocketTest, test_connect) {
+  connect(); 
+}
+
+TEST_F(ossSocketTest, test_communication) {
+  communicate(); 
+}
+
+
 
