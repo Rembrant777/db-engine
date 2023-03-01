@@ -130,6 +130,38 @@ protected:
 
   void communicate() {
     cout << "test client side and server side connect and communicate scenario" << endl; 
+    ossSocket *ossServerPtr = getServerInstance(); 
+    ossSocket *ossClientPtr = getClientInstance(); 
+    ASSERT_TRUE(ossServerPtr != nullptr); 
+    ASSERT_TRUE(ossClientPtr != nullptr); 
+
+    // setup server 
+    ASSERT_EQ(EDB_OK, ossServerPtr->initSocket()); 
+    ASSERT_EQ(EDB_OK, ossServerPtr->bind_listen()); 
+    int serverHostnameLen = sizeof(char) * 32; 
+    char *serverHostnameStr = (char*) malloc(serverHostnameLen);
+    ASSERT_EQ(EDB_OK, (*ossServerPtr).getHostName(serverHostnameStr, serverHostnameLen));  
+
+    // validate server host name not empty 
+    ASSERT_TRUE(serverHostnameStr != nullptr && serverHostnameStr[0] != '\0'); 
+
+    // get server port 
+    unsigned int serverPort = ossServerPtr->getLocalPort(); 
+    cout << "server setup ok on host [" << serverHostnameStr << "] and listening to port [" << serverPort << "]" << endl; 
+
+    
+    // for now , we got server side's hostname:port 
+    // setup client socket and passing server side's hostname:port
+    // to client instance to send connect request 
+    ASSERT_EQ(EDB_OK, ossClientPtr->initSocket()); 
+    ossClientPtr->setAddress(serverHostnameStr, serverPort); 
+    ASSERT_EQ(EDB_OK, ossClientPtr->connect()); 
+    ASSERT_EQ(EDB_OK, ossClientPtr->disableNagle());
+
+     
+
+
+
     ASSERT_EQ(0, 0);
   }
 
