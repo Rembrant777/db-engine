@@ -31,17 +31,46 @@ public:
   ~ossSocketTest() {}
 
 protected: 
-  virtual void before() {
+  virtual void SetUp() {
     cout << "before test" << endl; 
     unsigned int _port = genRandomPort(); 
     int _timeout = 6; 
     ossPtr = new ossSocket(_port, _timeout); 
   }
 
-  virtual void after() {
+  virtual void TearDown() {
     cout << "after test" << endl; 
     delete ossPtr; 
+    ossPtr = nullptr;
     ASSERT_EQ(nullptr, ossPtr); 
+  }
+
+  void initSocket() {
+     cout << "test initSocket" << endl; 
+     ASSERT_EQ(EDB_OK, ossPtr->initSocket()); 
+     ASSERT_TRUE(ossPtr->getFd() > 0); 
+     ASSERT_EQ(true, ossPtr->getInitStatus()); 
+     ossPtr->~_ossSocket(); 
+  }
+
+  void setSocketLi() {
+    cout << "test setSocketLi" << endl; 
+    EXPECT_EQ(0 ,0);  
+  }
+
+  void socketServer() {
+    cout << "test oss socket server setup scenario" << endl; 
+    EXPECT_EQ(0 ,0);  
+  }
+
+  void socketClient() {
+    cout << "test oss socket client setup scenario" << endl; 
+    EXPECT_EQ(0 ,0);  
+  }
+
+  void connect() {
+    cout << "test oss socket client setup and communication scenario" << endl;
+    EXPECT_EQ(0 ,0);  
   }
 
 private:
@@ -53,20 +82,35 @@ private:
     unsigned int ret = 0; 
     ret = rand() % (OSS_MAX_PORT - OSS_MIN_PORT + 1) + OSS_MIN_PORT; 
     return ret; 
-}
+  }
 }; 
 
 // =============[ut signature]================ //
 // param1: unit test class name  
-// param2: test_${method_name}
+// param2: test_${method_name} or test_${scenario}
 // =============[ut signature]================ //
 
-TEST_F(ossSocketTest, test_initSocket) {
-  cout << "test initSocket" << endl; 
-  ASSERT_EQ(0, 0); 
+TEST_F(ossSocketTest, TestInitSocket) {
+  initSocket(); 
 }
 
 TEST_F(ossSocketTest, test_setSocketLi) {
-  cout << "test test_setSocketLi" << endl; 
-  ASSERT_EQ(0, 0);
+  setSocketLi(); 
 }
+
+
+TEST_F(ossSocketTest, test_socketServerScenario) {
+  socketServer(); 
+}
+
+
+TEST_F(ossSocketTest, test_socketClientScenario) {
+  socketClient(); 
+}
+
+TEST_F(ossSocketTest, test_serverClientCommunicationScenario) {
+  connect(); 
+}
+
+
+
