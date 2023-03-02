@@ -161,19 +161,19 @@ protected:
 
 		// create 3 thread set thread id begin from 20000 
 		pthread_t thread_client[3];
-		ClientMsg clientMsgArr[3];
-
+		ClientMsg * clientMsgArr[3]; 
 
 		// traverse each pthread_t and initi correspoinding thread object 
 		for (int i = 0; i < 3; i++) {
 			// passing the content's 
 			// thread id is [0 ~ 2]
 			/// create client msg 
-			clientMsgArr[i].tid = i * 0L; 
-			clientMsgArr[i].timestamp = current_timestamp(); 
-			clientMsgArr[i].msg = "thread message with hello world(....)"; 
-			ClientMsg *ptr = &(clientMsgArr[i]); 
-			pthread_create(&thread_client[i], &attr, MutexThreadExecutor, (void*) ptr); 
+			ClientMsg clientMsg; 
+			clientMsg.tid = i * 0L; 
+			clientMsg.timestamp = current_timestamp(); 
+			clientMsg.msg = "thread message with hello world(....)"; 
+			clientMsgArr[i] = &clientMsg; 
+			pthread_create(&thread_client[i], &attr, MutexThreadExecutor, (void*) &clientMsg); 
 		}
 
 		// destory thread attribute 
@@ -196,7 +196,7 @@ protected:
 
 		// neither we need the client msg array any more free it 
 		for (int i = 0; i < 3; i++) {
-			free(&clientMsgArr[i]); 
+			free(clientMsgArr[i]); 
 			free(&serverTable.msgTable[i]); 
 		}
 		free(&serverTable);
@@ -330,8 +330,8 @@ TEST_F(pthreadTest, test_pthreadJoin) {
 
 
 TEST_F(pthreadTest, test_pthreadMutex) {
-	// pthreadMutex(); 
-	EXPECT_EQ(0, 0); 
+	pthreadMutex(); 
+	// EXPECT_EQ(0, 0); 
 }
 
 
