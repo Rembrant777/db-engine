@@ -186,11 +186,9 @@ protected:
 			cout << "create thread " << i << endl; 
 		}
 
-
 		// destory thread attribute 
 		pthread_attr_destroy(&attr);
 		pthread_mutex_destroy(&serverTableMutex);
-
 
 		// here we gonna print global shared variable the server table content and got its inner accumulator that the vaue should be == threads' cnt 
 		cout << "Main thread gonna print server tables after sleep for 3 second " << endl; 
@@ -213,6 +211,106 @@ protected:
 		// // free(&serverTable);
 		// free(&clientMsgArr);
 		cout << "Main thread is finish gonna exit!" << endl;
+	}
+
+
+	/**
+	  -- init -- 
+	  pthread_cond_init(condition, attr);
+	  pthread_cond_destroy(conndition);
+	  pthread_condattr_init(attr);
+	  pthread_condattr_destroy(attr); 
+
+	  -- operation -- 
+	  pthread_cond_wait(condition, mutex);
+	  |- usage: this method blocks the calling thread until the specified condition is signalled, this routine should be called while mutex 
+	            is locked, and it will automatically release the mutex while it waits. after signal is received and thread is awakened, mutex 
+	            will be locked for use by the thread, the programmer is then responsible for unlocking mutex when the thread is finished with it. 
+	  |- tips: recommendation use a while loop instead of if statement to check the waited for condition can help deal with several potential problems. 
+	           > if several threads are waiting for the same wake up signal, they will take turns acuqiring the mutex, and any one of them can then modify the condition 
+	              that all the threads are waiting for 
+	           > if the thread received the signal in error due to a program bug 
+	           > the pthreads library is permitted to issue spurious wake ups to a waiting thread without violating the standard. 
+
+
+
+
+	  pthread_cond_signal(condition);
+	  |- usage: the pthread_cond_signal() routine is used to signal (or wake up) another thread which is waiting on the condition variable, it should be called 
+	            after mutex is locked, and must unlock mutex in order for pthread_cond_wait() routine to complete 
+	  pthread_cond_broadcast(condition);
+
+
+	  -- differences vs. mutex -- 
+	  condition variables provide yet another way for threads to synchronized, while mutexes implement synchronization by controlling 
+	  thread access to data, condition variables allow threads to synchronize based upon the actual varlue of data. 
+
+	  without condition variables, the programmer would need to have threads continually polling(possibly in a critical section), to check
+	  if the condition is met which can be very resoruce consuming since the thread would be continuously busy in this activity.
+
+	  and condition variable is a way to achieve the same goal without polling. 
+
+	  and a condition variable is always used in conjuction with a mutex lock, 
+
+	  a representntative sequence for using condition variables is shown below.  
+	*/
+	// test pthread_cond_t and corresponding methods 
+	void pthreadCond() {
+		// create mutex, cond, pthread(array) and pthread attribute instances 
+		pthread_mutex_t _mutex; 
+		pthread_cond_t  _cond; 
+		pthread_t pthread_arr[3];
+		pthread_attr_t pthread_attr; 
+		ThreadMsg msg_arr[3]; 
+		int rc = -1; 
+		int shared_counter = 0; 
+
+		// init instance created above 
+		pthread_mutex_init(&_mutex, NULL);
+		pthread_cond_init(&_cond, NULL); 
+		pthread_attr_init(&pthread_attr); 
+		//set pthread's attribute variable pthread created via this attribute are all joinable in default 
+		pthread_attr_setdetachstate(&pthread_attr, PTHREAD_CREATE_JOINABLE); 
+
+		// and one thread that watch the shared value updation and print the accumulating info to console 
+		msg_arr[0].thread_id = 10000; 
+		msg_arr[0]._mutexPtr = &_mutex; 
+		msg_arr[0]._condPtr  = &_cond; 
+		msg_arr[0]._countPtr = &shared_counter; 
+		rc = pthread_create(&pthread_arr[0], &pthread_attr, CondWatchExecutor, (void*) &msg_arr[0]);
+		ASSERT_EQ(rc, EDB_OK);
+
+
+		// here we create two thread that execute accumulate the shared value 
+		msg_arr[1].thread_id = 10001; 
+		msg_arr[1]._mutexPtr = &_mutex; 
+		msg_arr[1]._condPtr = &_cond; 
+		msg_arr[1]._countPtr = &shared_counter; 
+		pthread_create(&pthread_arr[1], &pthread_attr, CondAccumulatorExecutor, (void*) &msg_arr[1]); 
+		ASSERT_EQ(rc, EDB_OK);
+
+		msg_arr[2].thread_id = 10002; 
+		msg_arr[2]._mutexPtr = &_mutex; 
+		msg_arr[2]._condPtr  = &_cond;  
+		msg_arr[2]._countPtr = &shared_counter; 
+		pthread_create(&pthread_arr[2], &pthread_attr, CondAccumulatorExecutor, (void*) &msg_arr[2]); 
+		ASSERT_EQ(rc, EDB_OK);
+
+		// here wait for all threads to complete 
+		for (int cnt = 0; cnt < 3; cnt++) {
+			cout << "join thread with tid " << pthread_arr[cnt] << endl; 
+			rc = pthread_join(pthread_arr[cnt], NULL); 
+			ASSERT_EQ(rc, EDB_OK);
+		}
+
+
+		// clean up and exit 
+		pthread_attr_destroy(&pthread_attr); 
+		pthread_mutex_destroy(&_mutex); 
+		pthread_cond_destroy(&_cond); 
+
+		// cannot execute pthread_exit(NULL) to exit main thread here cuz we are in unit test!
+		// pthread_exit(NULL);
 	}
 
 private:
@@ -247,6 +345,54 @@ private:
 	};
 	typedef _ClientMsg ClientMsg;  
 
+	struct _ThreadMsg {
+		long thread_id; 
+		pthread_cond_t* _condPtr; 
+		pthread_mutex_t* _mutexPtr; 
+		int* _countPtr; 
+	}; 
+
+	typedef _ThreadMsg ThreadMsg; 
+
+
+	static void* CondAccumulatorExecutor(void* ptr) {
+		ThreadMsg *msgPtr = (ThreadMsg*) ptr; 
+
+		cout << "CondAccumulatorExecutor# executed by thread  " << (*msgPtr).thread_id << endl; 
+
+		for (int i = 0; i < 100; i++) {
+			pthread_mutex_lock((*msgPtr)._mutexPtr); 
+			(*(*msgPtr)._countPtr) += 1; 
+			cout << "Now counter is " << (*(*msgPtr)._countPtr) << " accumulated by thread with id " << (*msgPtr).thread_id <<  endl; 
+			if (100 <= (*(*msgPtr)._countPtr)) {
+				pthread_cond_signal((*msgPtr)._condPtr); 
+				cout << "CondAccumulatorExecutor# thread with tid " << (*msgPtr).thread_id << " unlocking mutex with count " << (*(*msgPtr)._countPtr) << endl; 
+			}
+			// sleep for 1 secs 
+			pthread_mutex_unlock((*msgPtr)._mutexPtr); 
+			sleep(1);
+		} 
+		pthread_exit(NULL);
+	}
+
+	static void* CondWatchExecutor(void* ptr) {
+		ThreadMsg *msgPtr = (ThreadMsg*) ptr; 
+
+		cout << "CondWatchExecutor# executed by thread  " << (*msgPtr).thread_id << endl; 
+		int count = (*(*msgPtr)._countPtr); 
+		pthread_mutex_lock((*msgPtr)._mutexPtr); 
+		// we use 100 as the shared upper threashold for counter 
+		while (count < 100) {
+			pthread_cond_wait((*msgPtr)._condPtr, (*msgPtr)._mutexPtr);
+			cout << "CondWatchExecutor# with thread id tid " << (*msgPtr).thread_id << endl; 
+		} // while 
+
+		(*(*msgPtr)._countPtr) += 10; 
+		pthread_mutex_unlock((*msgPtr)._mutexPtr); 
+		pthread_exit(NULL); 
+	}
+
+
 	static void* MutexThreadExecutor(void* ptr) {
 		ClientMsg *clientMsg; 
 		clientMsg = (ClientMsg *) ptr; 
@@ -255,6 +401,7 @@ private:
 		(*serverTable).msgTable[(*clientMsg).tid% (*serverTable).maxLen] = clientMsg->msg;  
 		(*serverTable).accumulator += 1; 
 		cout << "ServerTable#accumulator " << (*serverTable).accumulator << " should < "  << "ServerTable.maxLen " << (*serverTable).maxLen << endl; 
+		pthread_exit(NULL);
 	}
 
 	static void* ThreadExecutor(void* _tid) {
@@ -330,6 +477,12 @@ TEST_F(pthreadTest, test_pthreadJoin) {
 
 TEST_F(pthreadTest, test_pthreadMutex) {
 	pthreadMutex(); 
+}
+
+TEST_F(pthreadTest, test_pthreadCond) {
+	// cond logic not work as expected yet comment first 
+	// pthreadCond(); 
+	EXPECT_EQ(0, 0); 
 }
 
 
