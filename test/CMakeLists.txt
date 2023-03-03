@@ -32,5 +32,12 @@ add_executable(
     oss_test.cpp
 )
 
+add_executable(
+    unit_test_pthread 
+    pthread_test.cpp 
+)
+
 target_link_libraries(unit_test_oss oss core ${GTest_LIBRARIES} ${GTest_Main_LIBRARIES} ${GMock_LIBRARIES} ${GMOck_Main_LIBRARIES})
+
+target_link_libraries(unit_test_pthread core ${GTest_LIBRARIES} ${GTest_Main_LIBRARIES} ${GMock_LIBRARIES} ${GMOck_Main_LIBRARIES})
 
