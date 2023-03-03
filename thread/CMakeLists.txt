@@ -1,13 +1,25 @@
 add_library(oss)
 
-target_sources(oss
-    PRIVATE
-      ossSocket.cpp
+target_sources(threadpool 
+    PRIVATE 
+      threadpool.hpp
     PUBLIC 
-      ossSocket.hpp
+      threadpool.cpp 
 )
 
-target_link_libraries(oss core)
+target_sources(nonblocking_threadpool
+    PRIVATE
+      nonblocking_threadpool.hpp
+    PUBLIC 
+      nonblocking_threadpool.cpp 
+)
+
+
+target_link_libraries(threadpool core)
+
+target_link_libraries(nonblocking_threadpool core)
+
+target_link_libraries(threadpool nonblocking_threadpool)
 
 target_include_directories(oss
     PUBLIC
