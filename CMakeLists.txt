@@ -23,7 +23,7 @@ else(NOT GCOV_PATH)
     message("Gcov path: "${GCOV_PATH})
 endif()
 
-add_subdirectory(bson)
+#add_subdirectory(bson)
 add_subdirectory(core)
 add_subdirectory(oss)
 add_subdirectory(test)

@@ -26,6 +26,7 @@ class pthreadTest : public Test {
 public:
 	pthreadTest() {}
 	~pthreadTest() {}
+
 protected:
 	virtual void SetUp() {
 		cout << "SetUp pthreadTest" << endl ;
@@ -139,7 +140,11 @@ protected:
 	}
 
 	void pthreadMutex() {
+		pthread_mutex_t serverTableMutex; 
 		pthread_mutex_init(&serverTableMutex, NULL);
+		void* status; 
+		ServerTable serverTable; 
+
 		// maxlen == sub thread cnt we set it to 3 
 		serverTable.maxLen = 3; 
 		// accumulator records how many in total received request for sub-threads 
@@ -149,8 +154,7 @@ protected:
 		for (int i = 0; i < serverTable.maxLen; i++) {
 			serverTable.msgTable[i] = (char*) malloc (sizeof(char) * 128); 
 		}
-
-
+		
 		// create thread attribute set it should be joinable 
 		pthread_attr_t attr; 
 		pthread_attr_init(&attr);
@@ -161,20 +165,26 @@ protected:
 
 		// create 3 thread set thread id begin from 20000 
 		pthread_t thread_client[3];
-		ClientMsg * clientMsgArr[3]; 
+		ClientMsg clientMsgArr[3]; 
 
 		// traverse each pthread_t and initi correspoinding thread object 
 		for (int i = 0; i < 3; i++) {
 			// passing the content's 
 			// thread id is [0 ~ 2]
 			/// create client msg 
-			ClientMsg clientMsg; 
-			clientMsg.tid = i * 0L; 
-			clientMsg.timestamp = current_timestamp(); 
-			clientMsg.msg = "thread message with hello world(....)"; 
-			clientMsgArr[i] = &clientMsg; 
-			pthread_create(&thread_client[i], &attr, MutexThreadExecutor, (void*) &clientMsg); 
+			ClientMsg *ptr = &clientMsgArr[i]; 
+			
+			(*ptr).tid = i * 0L; 
+			(*ptr).timestamp = current_timestamp(); 
+			(*ptr).msg = " thread message with hello world "; 
+			(*ptr).serverTablePtr = &serverTable;  
+			pthread_mutex_lock(&serverTableMutex); 
+			pthread_create(&thread_client[i], &attr, MutexThreadExecutor, (void*) ptr); 
+			pthread_mutex_unlock(&serverTableMutex); 
+			cout << "create thread " << i << endl; 
 		}
+
+		//pthread_join(); 
 
 		// destory thread attribute 
 		pthread_attr_destroy(&attr);
@@ -194,24 +204,32 @@ protected:
 		// will not use server table any more free it -- may be move it to the destructor better 
 		
 
-		// neither we need the client msg array any more free it 
-		for (int i = 0; i < 3; i++) {
-			free(clientMsgArr[i]); 
-			free(&serverTable.msgTable[i]); 
-		}
-		free(&serverTable);
+		// // neither we need the client msg array any more free it 
+		// for (int i = 0; i < 3; i++) {
+		// 	free(&clientMsgArr[i]); 
+		// 	free(&(pthreadTest::serverTable.msgTable[i])); 
+		// }
+		// free(&serverTable);
 		free(&clientMsgArr);
 		cout << "Main thread is finish gonna exit!" << endl;
 	}
 
 private:
-	// we create server table to save all clients from different thread's message 
-	// msg_table[thread_index] = "thread $thread_id send message $msg_content at timestamp $timestamp"; 
-	// cnt value should = total thread cnt - 1 
+	long MAX_THREAD_CNT = 5; 
+	
+	// in thread_metadata struct we define thread metadata fields 
+	struct _thread_metadata {
+		int thread_id; 
+		int cnt; 
+		char* msg; 
+	}; 
+
+	typedef struct _thread_metadata thread_metadata; 
+
 	struct _ServerTable {
 		int accumulator; 
 		int maxLen; 
-		char * msgTable[]; 
+		char * msgTable[3]; 
 	} ; 
 	typedef _ServerTable ServerTable; 
 
@@ -221,41 +239,24 @@ private:
 		// message sending timestamp 
 		long long timestamp; 
 		// client's message content length should <= sizeof(char) * 128  
-		char * msg; 
+		char* msg; 
+
+		// pointer pointed to the multi-thread shared server table
+		ServerTable* serverTablePtr; 
 	};
 	typedef _ClientMsg ClientMsg;  
 
-	// here create globel variable that can be accessed and shared among multiple threads 
-	static ServerTable serverTable; 
-
-
-	long MAX_THREAD_CNT = 5; 
-	    // in thread_metadata struct we define thread metadata fields 
-	struct _thread_metadata {
-		int thread_id; 
-		int cnt; 
-		char* msg; 
-	}; 
-
-	typedef struct _thread_metadata thread_metadata; 
-
-	static pthread_mutex_t serverTableMutex; 
-
 	static void* MutexThreadExecutor(void* ptr) {
+		cout << "MutexThreadExecutor# begin " << endl; 
 		ClientMsg *clientMsg; 
 		clientMsg = (ClientMsg *) ptr; 
-
-        // we should keep safety of the shared variable the Content 
-        // so every time when thread enter this MutexThreadExecutor method 
-        // we need to use mutex_lock & mutex_unlock to protect the share variable 
-		pthread_mutex_lock (&serverTableMutex);
+		ServerTable *serverTable = (*clientMsg).serverTablePtr; 
 		sprintf(clientMsg->msg, " with thread id %ld at timestamp at %lld\n", clientMsg->tid, clientMsg->timestamp);
 		cout << "we got clientMsg#msg " << clientMsg->msg << endl; 
-		serverTable.msgTable[(*clientMsg).tid% serverTable.maxLen] = clientMsg->msg;  
-		serverTable.accumulator += 1; 
-		// ASSERT_LT(serverTable.accumulator, serverTable.maxLen);
-		cout << "ServerTable#accumulator " << serverTable.accumulator << " should < "  << "ServerTable.maxLen " << serverTable.maxLen << endl; 
-		pthread_mutex_unlock (&serverTableMutex);
+		(*serverTable).msgTable[(*clientMsg).tid% (*serverTable).maxLen] = clientMsg->msg;  
+		(*serverTable).accumulator += 1; 
+		cout << "ServerTable#accumulator " << (*serverTable).accumulator << " should < "  << "ServerTable.maxLen " << (*serverTable).maxLen << endl; 
+		cout << "MutexThreadExecutor# end " << endl; 
 	}
 
 	static void* ThreadExecutor(void* _tid) {
@@ -331,7 +332,7 @@ TEST_F(pthreadTest, test_pthreadJoin) {
 
 TEST_F(pthreadTest, test_pthreadMutex) {
 	pthreadMutex(); 
-	// EXPECT_EQ(0, 0); 
+	//EXPECT_EQ(0, 0); 
 }
 
 
