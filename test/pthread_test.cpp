@@ -360,7 +360,7 @@ private:
 
 		cout << "CondAccumulatorExecutor# executed by thread  " << (*msgPtr).thread_id << endl; 
 
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 3; i++) {
 			pthread_mutex_lock((*msgPtr)._mutexPtr); 
 			(*(*msgPtr)._countPtr) += 1; 
 			cout << "Now counter is " << (*(*msgPtr)._countPtr) << " accumulated by thread with id " << (*msgPtr).thread_id <<  endl; 
