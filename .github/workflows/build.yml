@@ -40,5 +40,5 @@ jobs:
     - name: Test
       run: |
           echo "begin run ut tests $(pwd)" && 
-          cd build/bin && ./unit_test_oss && 
+          cd build/bin && ./unit_test_oss && ./unit_test_pthread 
           echo "finish run ut tests" 
