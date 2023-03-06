@@ -40,6 +40,7 @@ namespace emeralddb {
 		    	oss::ossSocket      _sock; 
 		    	CommandFactory _cmdFactory; 
 		    	char           _cmdBuffer[CMD_BUFFER_SIZE]; 
+		    	ICommand*      pCmd; 
 		}; 
 	} // edb 
 } // emeralddb 

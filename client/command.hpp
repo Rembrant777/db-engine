@@ -18,7 +18,7 @@
 #define _COMMAND_HPP_
 
 #include "core.hpp"
-#include "bson/json.h"
+#include "json.h"
 #include "ossSocket.hpp"
 #define COMMAND_QUIT		"quit"
 #define COMMAND_INSERT		"insert"
@@ -59,13 +59,13 @@ namespace emeralddb {
 				bson::BSONObj &obj); 
 		public:
 			// here we define execute for ICommand's implementations to implement logic 
-			virtual int execute(ossSocket& sock, std::vector<std::string> & argVec); 
+			virtual int execute(oss::ossSocket& sock, std::vector<std::string> & argVec); 
 			int  getError(int code);
 		
 		protected: 
-		    int recvReply(ossSocket& sock); 
-		    int sendOrder(ossSocket& sock, OnMsgBuild OnMsgBuild);
-		    int sendOrder(ossSocket& sock, int opCode);
+		    int recvReply(oss::ossSocket& sock); 
+		    int sendOrder(oss::ossSocket& sock, OnMsgBuild OnMsgBuild);
+		    int sendOrder(oss::ossSocket& sock, int opCode);
 
 		protected:
 			// here we define handleReply for ICommand's implementations to implement specified logic 
@@ -83,7 +83,7 @@ namespace emeralddb {
 
 		class ConnectCommand : public ICommand {
 		    public:
-		    	int execute(ossSocket& sock, std::vector<std::string> & argVec); 
+		    	int execute(oss::ossSocket& sock, std::vector<std::string> & argVec); 
 
 		    private:
 		    	std::string    _address; 
@@ -93,7 +93,7 @@ namespace emeralddb {
 
 		class QuitCommand : public ICommand {
 		    public:
-		    	int execute(ossSocket& sock, std::vector<std::string> & argVec);
+		    	int execute(oss::ossSocket& sock, std::vector<std::string> & argVec);
 
 		    private:
 		        int handleReply();  
@@ -101,7 +101,7 @@ namespace emeralddb {
 
 		class HelpCommand : public ICommand {
 		    public:
-		    	int execute(ossSocket& sock, std::vector<std::string> & argVec); 
+		    	int execute(oss::ossSocket& sock, std::vector<std::string> & argVec); 
 		}; 
 
 	} // cmd 

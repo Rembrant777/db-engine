@@ -78,7 +78,7 @@ namespace emeralddb {
 
 			// passing command to command factory to load specified interface implementated instance 
 			// from the cache hash map which with key as command content, value as the sub class instance
-			pCmd = _cmdFactory.getCommandProcessor(cmd.c_str()); 
+			pCmd = _cmdFactory.getCommandProcesser(cmd.c_str()); 
 
 			if (NULL != pCmd) {
 				// ok we success retrieve an instance by command execute it!
