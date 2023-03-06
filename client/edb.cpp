@@ -100,29 +100,38 @@ namespace emeralddb {
 		*/
 		// todo: test the following code and figure out the logic in unit test 
 		int Edb::readInput(const char* pPrompt, int numIndent) {
-			// apply for a buffer to store user input from console 
+			// re-init buffer content to 0 
 			memset(_cmdBuffer, 0, CMD_BUFFER_SIZE);
 
 			for (int i = 0; i < numIndent; i++) {
 				std::cout << TAB; 
 			}
-
-			// print "edb>>"
+ 
+			// print "edb> " to console 
 			std::cout << pPrompt << "> "; 
 
-			// read a line from cmd 
+			// read a line from console to buffer with len <= $CMD_BUFFER_SIZE
 			readLine(_cmdBuffer, CMD_BUFFER_SIZE - 1);
+
+			// get user input string length 
 			int curBufLen = strlen(_cmdBuffer);
-			// if cmd recv '\' means the command from user type in is not finished 
+
+			// if latest character in _cmdBuffer is '\' means cmd inputing not finished continue read a new line 
 			while(_cmdBuffer[curBufLen-1] == BACK_SLANT
 				&& (CMD_BUFFER_SIZE-curBufLen) > 0) {
 				for (int i = 0; i < numIndent; i++) {
 					std::cout << TAB; 
 				}
 				std::cout << "> "; 
+				// continue read line start from array address with index moving curBufLen -1 steps,
+				// max recv input content length <= $CMD_BUFFER_SIZE - curBufLen 
 				readLine(&_cmdBuffer[curBufLen - 1], CMD_BUFFER_SIZE - curBufLen); 
 			}  // while 
+
+			// get received characters in total 
 			curBufLen = strlen(_cmdBuffer);
+
+			// traversea each item and replace tab into space for next stage's spliting 
 			for (int i = 0; i < curBufLen; i++) {
 				if (_cmdBuffer[i] == TAB) {
 					_cmdBuffer[i] = SPACE; 
@@ -131,5 +140,58 @@ namespace emeralddb {
 			return EDB_OK; 
 		}
 
+		// readLine
+		char* Edb::readLine(char *p, int length) {
+			int len = 0; 
+			int ch; 
+
+			while((ch = getchar()) != NEW_LINE && len < length) {
+				switch(ch) {
+					case BACK_SLANT:
+						break; 
+					default:
+				    	p[len] = ch; 
+				    	len++; 
+				}
+				continue; 
+			}
+
+			len = strlen(p); 
+			p[len] = 0; 
+
+			return p; 
+		}
+
+		void Edb::split(const std::string &text, char delim, std::vector<std::string> &result) {
+			size_t strlen = text.length(); 
+			size_t first = 0; 
+			size_t pos = 0; 
+
+			// two pointer here, every time inner loop will set the pos pointed to the delimiter's index 
+			// then extract [first, pos) we will got the corresponding splited item with out delimiter iteself 
+			// then move first <- pos + 1 to skip the pos's pointed delimiter 
+			for (first = 0; first < strlen; first = pos + 1) {
+				pos = first; 
+
+				// evertime inner while loop stop pos will pause on the delimiter's index position 
+				while (text[pos] != delim && pos < strlen) {
+					pos++; 
+				}
+
+				// extract [first, pos) to got the splited item from input string 
+				std::string str = text.substr(first, pos - first); 
+
+                // append the splited item to string vector 
+				result.push_back(str); 
+			}
+			return; 
+		}
+
+		// client's entry point 
+		int main(int argc, char** argv) {
+			Edb edb; 
+			edb.start(); 
+			return 0; 
+		}
     } // edb 
 } // emeralddb 
