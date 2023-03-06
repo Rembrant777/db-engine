@@ -12,3 +12,23 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
 */
+
+#include "commandFactory.hpp"
+
+namespace emeralddb {
+	namespace cmd {
+		ICommand* CommandFactory::getCommandProcesser(const char* pCmd) {
+			ICommand* pProcessor = NULL; 
+
+			do {
+				COMMAND_MAP::iterator iter; 
+				iter = _cmdMap.find(pCmd);
+				if (iter != _cmdMap.end()) {
+					pProcessor = iter->second; 
+				}
+			} while (0);
+
+			return pProcessor; 
+		}
+	} // cmd 
+} // emeralddb 

@@ -48,7 +48,7 @@
 #define EDB_MSG_BUILD_FAILED			-119 
 
 namespace emeralddb {
-	namespace edb {
+	namespace cmd {
 
 		// define interface for all emeralddb's commands 
 		class ICommand {

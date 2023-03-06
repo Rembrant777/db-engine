@@ -186,12 +186,15 @@ namespace emeralddb {
 			}
 			return; 
 		}
-
-		// client's entry point 
-		int main(int argc, char** argv) {
-			Edb edb; 
-			edb.start(); 
-			return 0; 
-		}
     } // edb 
 } // emeralddb 
+
+
+// using namespace emeralddb; 
+// using namespace edb; 
+// // client's entry point 
+// int main(int argc, char** argv) {
+// 	Edb edb; 
+// 	edb.start(); 
+// 	return 0; 
+// }

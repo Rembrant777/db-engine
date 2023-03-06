@@ -9,9 +9,11 @@ include_directories("${EMERALDDB_PUBLIC_INCLUDE_DIR}")
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${BOOST_INCLUDE_DIR})
 
+add_executable(client edb.cpp)
+
 add_library(cmd)
 add_library(cmdFactory)
-add_library(edb)
+#add_library(client)
 
 target_sources(cmd
     PRIVATE
@@ -27,29 +29,15 @@ target_sources(cmdFactory
       commandFactory.hpp
 )
 
-target_sources(edb
-    PRIVATE 
-      edb.cpp 
-    PUBLIC
-      edb.hpp
-)
+#target_sources(client
+#    PRIVATE 
+#      edb.cpp 
+#    PUBLIC
+#      edb.hpp
+#)
+
+target_link_libraries(cmd core oss bson)
 
 target_link_libraries(cmdFactory cmd)
 
-target_link_libraries(edb core oss bson cmd cmdFactory)
-
-target_include_directories(oss
-    PUBLIC
-    ${CMAKE_CURRENT_LIST_DIR}
-)
-
-if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
-  target_compile_options(oss
-      PUBLIC
-        "--coverage"
-  )
-  target_link_options(oss
-      INTERFACE
-        "--coverage"
-  )
-endif()
+target_link_libraries(client cmd core oss bson cmdFactory)

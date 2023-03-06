@@ -38,9 +38,9 @@ namespace emeralddb {
 		    	int    readInput(const char* pPrompt, int numIndent);
 		    private:
 		    	oss::ossSocket      _sock; 
-		    	CommandFactory _cmdFactory; 
+		    	cmd::CommandFactory _cmdFactory; 
 		    	char           _cmdBuffer[CMD_BUFFER_SIZE]; 
-		    	ICommand*      pCmd; 
+		    	cmd::ICommand*      pCmd; 
 		}; 
 	} // edb 
 } // emeralddb 
