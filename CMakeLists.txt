@@ -33,7 +33,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
 find_program(GCOV_PATH gcov)
 
 # create emeralddb as a library file in this lib contains all emeralddb source, header file and bsonsource and header files 
-add_executable(edb main.cpp)
+add_executable(edb_client client_main.cpp)
+add_executable(edb_server server_main.cpp)
 
 if(NOT GCOV_PATH)
     message(FATAL_ERROR "Code coverage analysis requires gcov!")
@@ -48,4 +49,5 @@ add_subdirectory(client)
 add_subdirectory(test)
 enable_testing()
 
-target_link_libraries(edb bson core oss client)
+target_link_libraries(edb_client bson core oss client)
+target_link_libraries(edb_server bson core oss client)
