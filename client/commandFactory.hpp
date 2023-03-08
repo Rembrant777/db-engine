@@ -18,7 +18,9 @@
 #include "command.hpp"
 
 
-#define COMMAND_BEGIN void emeralddb::cmd::CommandFactory::addCommand() {
+using namespace emeralddb; 
+using namespace client; 
+#define COMMAND_BEGIN void CommandFactory::addCommand() {
 #define COMMAND_END }									
 #define COMMAND_ADD(cmdName, cmdClass)  {			 		\
       ICommand* pObj = new cmdClass(); 						\
@@ -28,17 +30,17 @@
 
 
 namespace emeralddb {
-	namespace cmd {
+	namespace client {
 		class CommandFactory {
 			typedef std::map<std::string, ICommand*> COMMAND_MAP; 
 		    public:
-		    	CommandFactory(); 
+		    	CommandFactory() {}
 		    	~CommandFactory() {}
 		    	void addCommand(); 
 		    	ICommand* getCommandProcesser(const char* pcmd); 
 		    private:
 		    	COMMAND_MAP _cmdMap; 
 		}; 
-	} // cmd 
+	} // client 
 } // emeralddb 
 #endif 

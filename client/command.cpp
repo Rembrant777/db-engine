@@ -19,7 +19,6 @@
 #include "commandFactory.hpp"
 
 using namespace emeralddb; 
-using namespace cmd; 
 
 COMMAND_BEGIN
 COMMAND_ADD(COMMAND_CONNECT,ConnectCommand)
@@ -30,7 +29,7 @@ COMMAND_END
 extern int gQuit; 
 
 namespace emeralddb {
-	namespace cmd {
+	namespace client {
 		int ICommand::execute(oss::ossSocket & sock, std::vector<std::string> & argVec) {
 			return EDB_OK; 
 		}
@@ -292,7 +291,7 @@ namespace emeralddb {
 			return ret; 
 		}
 
-	} // cmd 
+	} // client 
 } // emeralddb 
 
 

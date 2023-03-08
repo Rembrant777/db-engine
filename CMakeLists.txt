@@ -48,4 +48,4 @@ add_subdirectory(client)
 add_subdirectory(test)
 enable_testing()
 
-#target_link_libraries(edb bson core oss client)
+target_link_libraries(edb bson core oss client)

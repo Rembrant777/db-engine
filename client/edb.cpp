@@ -20,14 +20,13 @@
 #include "command.hpp"
 
 namespace emeralddb {
-	namespace edb { 
+	namespace client { 
 		/// -----       constants       ----- ///
 		const char SPACE		= ' '; 
 		const char TAB			= '\t'; 
 		const char BACK_SLANT	= '\\'; 
 		const char NEW_LINE		= '\n'; 
 		/// -----       constants       ----- ///
-
 
 		int gQuit = 0; 
 
@@ -186,15 +185,6 @@ namespace emeralddb {
 			}
 			return; 
 		}
-    } // edb 
+    } // client 
 } // emeralddb 
 
-
-// using namespace emeralddb; 
-// using namespace edb; 
-// // client's entry point 
-// int main(int argc, char** argv) {
-// 	Edb edb; 
-// 	edb.start(); 
-// 	return 0; 
-// }

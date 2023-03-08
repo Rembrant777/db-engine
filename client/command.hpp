@@ -48,7 +48,7 @@
 #define EDB_MSG_BUILD_FAILED			-119 
 
 namespace emeralddb {
-	namespace cmd {
+	namespace client {
 
 		// define interface for all emeralddb's commands 
 		class ICommand {
@@ -104,7 +104,7 @@ namespace emeralddb {
 		    	int execute(oss::ossSocket& sock, std::vector<std::string> & argVec); 
 		}; 
 
-	} // cmd 
+	} // client 
 } // emeralddb 
 
 #endif 

@@ -16,7 +16,7 @@
 #include "commandFactory.hpp"
 
 namespace emeralddb {
-	namespace cmd {
+	namespace client {
 		ICommand* CommandFactory::getCommandProcesser(const char* pCmd) {
 			ICommand* pProcessor = NULL; 
 
@@ -30,5 +30,5 @@ namespace emeralddb {
 
 			return pProcessor; 
 		}
-	} // cmd 
+	} // client 
 } // emeralddb 

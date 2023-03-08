@@ -18,12 +18,13 @@
 
 #include "core.hpp"
 #include "ossSocket.hpp"
+#include "command.hpp"
 #include "commandFactory.hpp"
 
 const int CMD_BUFFER_SIZE = 512; 
 
 namespace emeralddb {
-	namespace edb {
+	namespace client {
 		class Edb {
 		    public:
 		    	Edb() {}
@@ -38,11 +39,11 @@ namespace emeralddb {
 		    	int    readInput(const char* pPrompt, int numIndent);
 		    private:
 		    	oss::ossSocket      _sock; 
-		    	cmd::CommandFactory _cmdFactory; 
+		    	CommandFactory _cmdFactory; 
 		    	char           _cmdBuffer[CMD_BUFFER_SIZE]; 
-		    	cmd::ICommand*      pCmd; 
+		    	ICommand*      pCmd; 
 		}; 
-	} // edb 
+	} // client 
 } // emeralddb 
 
 #endif 
