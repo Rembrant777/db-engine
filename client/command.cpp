@@ -293,22 +293,3 @@ namespace emeralddb {
 
 	} // client 
 } // emeralddb 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
