@@ -1,4 +1,4 @@
 # client design doc 
 
 ## uml 
-![client command uml diagram](cmd_uml.png)
+![](https://github.com/Rembrant777/db-engine/blob/db_init/doc/cmd_uml.png)
