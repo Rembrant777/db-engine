@@ -1,4 +1,4 @@
 # client design doc 
 
-## uml 
+## UML Diagram
 ![avatar](cmd_uml.jpg)
