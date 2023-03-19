@@ -1,4 +1,4 @@
 # client design doc 
 
 ## uml 
-![](./cmd.png)
+![avatar](cmd_uml.jpg)
