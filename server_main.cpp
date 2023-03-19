@@ -20,12 +20,15 @@
 #include "client/command.hpp"
 #include "client/commandFactory.hpp"
 #include "client/edb.hpp"
+#include "pmd/pmdTcpListener.cpp"
 
 using namespace std; 
 using namespace emeralddb; 
-
+int pmdTcpListenerEntryPoint(); 
 // entry point for server driver 
 int main() {
-    cout << "hello world from server side" << endl; 
+    cout << "hello world from server side" << endl;
+    int rc =  emeralddb::server::pmdTcpListenerEntryPoint();  
+    cout << "rc " << rc << " received from func ret" << endl; 
     return 0; 
 }
