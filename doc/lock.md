@@ -4,7 +4,12 @@
 
 * spinlock 
 ```
+feature:
 keep checking whether the condition changing and release the lock, before release spinlock cpu always in busy state  
+
+scenario:
+* in short lock's scenarios use spinlock will reduce cpu context switching raised resource consuming  
+* in long lock's scenarios will increase cpu resource consuming  
 ```
 
 
