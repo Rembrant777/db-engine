@@ -3,10 +3,12 @@ add_library(oss)
 target_sources(oss
     PRIVATE
       ossSocket.cpp
+      ossPrimitiveFileOp.cpp 
     PUBLIC 
       ossSocket.hpp
       ossXLatch.hpp
       ossQueue.hpp
+      ossPrimitiveFileOp.hpp
 )
 
 target_link_libraries(oss core)
