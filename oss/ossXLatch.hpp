@@ -55,11 +55,11 @@ namespace oss {
     private:
         pthread_rwlock_t _lock; 
     public:
-        ossSLatch() {
+        ossELatch() {
             pthread_rwlock_init(&_lock, 0);     
         }
    
-        ~ossSLatch() {
+        ~ossELatch() {
             pthread_rwlock_destroy(&_lock); 
         }
          

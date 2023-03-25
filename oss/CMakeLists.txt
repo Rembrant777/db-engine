@@ -6,6 +6,7 @@ target_sources(oss
     PUBLIC 
       ossSocket.hpp
       ossXLatch.hpp
+      ossQueue.hpp
 )
 
 target_link_libraries(oss core)

@@ -14,6 +14,8 @@
 */
 
 #include "ossSocket.hpp"
+#include "ossQueue.hpp"
+#include "ossXLatch.hpp"
 
 namespace emeralddb {
   namespace oss {
