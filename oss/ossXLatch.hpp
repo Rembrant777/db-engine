@@ -23,7 +23,7 @@ enum OSS_LATCH_MODE {
     EXCLUSIVE
 }; 
 
-namespace ememralddb {
+namespace emeralddb {
 namespace oss {
     class ossXLatch {
     private:
@@ -76,7 +76,7 @@ namespace oss {
        }
       
        bool get_shared() {
-           pthread_rwlock_rdlock(&_lock);  
+           return pthread_rwlock_rdlock(&_lock);  
        }
 
        void release_shared() {
