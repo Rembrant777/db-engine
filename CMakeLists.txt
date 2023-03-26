@@ -46,6 +46,7 @@ add_subdirectory(bson)
 add_subdirectory(core)
 add_subdirectory(oss)
 add_subdirectory(client)
+add_subdirectory(logger)
 add_subdirectory(test)
 enable_testing()
 
