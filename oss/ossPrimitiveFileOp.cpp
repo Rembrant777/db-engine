@@ -162,7 +162,11 @@ namespace oss {
        rc = Write(buf);
 
        return rc;  
-   }// fWrite     
+   }// fWrite    
+
+  void ossPrimitiveFileOp:: seekToEnd(void) {
+      oss_lseek(_fileHandle, 0, SEEK_END);    
+  }
 
 
    void ossPrimitiveFileOp::setFileHandle(handleType handle) {
