@@ -11,7 +11,7 @@ target_sources(oss
       ossPrimitiveFileOp.hpp
 )
 
-target_link_libraries(oss core)
+target_link_libraries(oss core logger)
 
 target_include_directories(oss
     PUBLIC

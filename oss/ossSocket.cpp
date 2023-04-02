@@ -76,6 +76,7 @@ namespace emeralddb {
         // extract peer's socket address from an existing sock 
         rc = getsockname(_fd, (sockaddr*)&_sockAddress, &_addressLen); 
         if (rc) {
+            PD_LOG (PDERROR, "Failed to get sock name, errorno. = %d", SOCKET_GETLASTERROR);
             printf("Failed to get sock name, errorno. = %d", SOCKET_GETLASTERROR); 
             _init = false;
         } else {
