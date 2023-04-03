@@ -1,5 +1,3 @@
-
-/*    Copyright 2009 10gen Inc.
 /*    Copyright 2009 10gen Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -86,7 +84,7 @@ int pmdOptions::importVM(const po::variables_map &vm, bool isDefault) {
         p = vm[PMD_OPTION_CONFPATH].as<string>().c_str(); 
         strncpy(_confPath, p, OSS_MAX_PATHSIZE); 
     } else if (isDefault) {
-        strcpy(_confPath, "./"CONFFILENAME"); 
+        strcpy(_confPath, "./" CONFFILENAME); 
     } 
 
     // conf path param value parser 
@@ -94,20 +92,20 @@ int pmdOptions::importVM(const po::variables_map &vm, bool isDefault) {
         p = vm[PMD_OPTION_LOGPATH].as<string>().c_str(); 
         strncpy(_logPath, p, OSS_MAX_PATHSIZE); 
     } else if (isDefault) {
-        strcpy(_logPath, "./"LOGFILENAME); 
+        strcpy(_logPath, "./" LOGFILENAME); 
     }
 
     // db file path 
     if (vm.count (PMD_OPTION_DBPATH)) {
-        p = vm[PMD_OPTION_DBPATH]; 
+        p = vm[PMD_OPTION_DBPATH].as<string>().c_str(); 
         strncpy(_dbPath, p, OSS_MAX_PATHSIZE); 
     } else if (isDefault) {
-       strcpy(_dbPath, "./"DBFILENAME); 
+       strcpy(_dbPath, "./" DBFILENAME); 
    }
  
    // svc name 
    if (vm.count(PMD_OPTION_SVCNAME)) {
-       p = vm[PMD_OPTION_SVCNAME].as<string>.c_str(); 
+       p = vm[PMD_OPTION_SVCNAME].as<string>().c_str(); 
        strncpy(_svcName, p, NI_MAXSERV); 
    } else if (isDefault) {
        strcpy(_svcName, SVCNAME);  
@@ -127,6 +125,7 @@ int pmdOptions::readConfigureFile(const char *path, po::options_description &des
                                   po::variables_map &vm) {
     int rc = EDB_OK; 
     char conf[OSS_MAX_PATHSIZE + 1] = {0}; 
+    strncpy(conf, path, OSS_MAX_PATHSIZE);
 
     try {
         po::store(po::parse_config_file<char>(conf, desc, true), vm); 
@@ -136,11 +135,11 @@ int pmdOptions::readConfigureFile(const char *path, po::options_description &des
         rc = EDB_IO; 
         goto error;  
     } catch(po::unknown_option &e) {
-        std::cerr << "Unknown config element: " << e.get_option_name() << std::endl; "
+        std::cerr << "Unknown config element: " << e.get_option_name() << std::endl;
         rc = EDB_INVALIDARG; 
         goto error;  
     } catch(po::invalid_option_value &e) {
-        std::cerr << (std::string) ""Invalid config element: " << e.get_option_name() << std::endl; 
+        std::cerr << (std::string) "Invalid config element: " << e.get_option_name() << std::endl; 
         rc = EDB_INVALIDARG;
         goto error;  
     } catch(po::error &e) {
@@ -162,7 +161,7 @@ int pmdOptions::init(int argc, char **argv) {
     po::variables_map vm; 
     po::variables_map vm2; 
 
-    PMD_ADD_PARAM_OPTIONS_BEGIN(all); 
+    PMD_ADD_PARAM_OPTIONS_BEGIN( all )
       PMD_COMMANDS_OPTIONS
     PMD_ADD_PARAM_OPTIONS_END
     
@@ -182,26 +181,34 @@ int pmdOptions::init(int argc, char **argv) {
     
     // check if there is conf path 
     if (vm.count(PMD_OPTION_CONFPATH)) {
+        rc = readConfigureFile(vm[PMD_OPTION_CONFPATH].as<string>().c_str(), all, vm2); 
+    }
 
-     
+    if (rc) {
+        PD_LOG(PDERROR, "Unexpected error when reading conf file, rc = %d", rc); 
+        goto error; 
     }
-     
-    // check there is db path 
-    if (vm.count(PMD_OPTION_DBPATH)) {
+   
+    // load vm from file 
+    rc = importVM(vm2); 
+    if (rc) {
+        PD_LOG(PDERROR, "Failed to import from vm2, rc = %d", rc); 
+        goto error; 
+    }
     
-    }
-     
-   // todo 
-done: 
+    // load vm from command line 
+    rc = importVM(vm); 
+    if (rc) {
+        PD_LOG(PDERROR, "Failed to import from vm, rc = %d", rc);  
+        goto error; 
+    }   
+ 
+done:
     return rc; 
 error:
-    goto done ; 
+    goto done;      
 } 
 // -- init -- 
-
-
-
-
 
 
 } // pmd 

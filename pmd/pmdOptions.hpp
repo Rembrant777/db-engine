@@ -37,12 +37,12 @@ namespace po = boost::program_options;
 #define PMD_COMMANDS_STRING(a,b) (string(a) + string(b)).c_str()
 
 #define PMD_COMMANDS_OPTIONS \
-        ( PMD_COMMANDS_STRING ( PMD_OPTION_HELP, "h"), "help" ) \
-        ( PMD_COMMANDS_STRING ( PMD_OPTION_DBPATH, ",d"),   boost::program_options::value<string>(), "database file full path" ) \
-        ( PMD_COMMANDS_STRING ( PMD_OPTION_SVCNAME, ",s"),  boost::program_options::value<string>(), "local service name" ) \
-        ( PMD_COMMANDS_STRING ( PMD_OPTION_MAXPOOL, ",m"),  boost::program_options::value<unsigned int>(), "max pooled agent" ) \
-        ( PMD_COMMANDS_STRING ( PMD_OPTION_LOGPATH, ",l"),  boost::program_options::value<string>(), "diagnostic log file full path" ) \
-        ( PMD_COMMANDS_STRING ( PMD_OPTION_CONFPATH, ",c"), boost::program_options::value<string>(), "configuration file full path") \
+        ( PMD_COMMANDS_STRING ( PMD_OPTION_HELP, ",h"), "help" ) \
+        ( PMD_COMMANDS_STRING ( PMD_OPTION_DBPATH, ",d"), boost::program_options::value<string>(), "database file full path" ) \
+        ( PMD_COMMANDS_STRING ( PMD_OPTION_SVCNAME, ",s"), boost::program_options::value<string>(), "local service name" ) \
+        ( PMD_COMMANDS_STRING ( PMD_OPTION_MAXPOOL, ",m"), boost::program_options::value<unsigned int>(), "max pooled agent" ) \
+        ( PMD_COMMANDS_STRING ( PMD_OPTION_LOGPATH, ",l"), boost::program_options::value<string>(), "diagnostic log file full path" ) \
+        ( PMD_COMMANDS_STRING ( PMD_OPTION_CONFPATH, ",c"), boost::program_options::value<string>(), "configuration file full path" ) \
 
 
 #define CONFFILENAME "edb.conf" 
