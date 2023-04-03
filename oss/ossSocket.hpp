@@ -16,6 +16,8 @@
 #define OSSSOCKET_HPP__
 
 #include "core.hpp"
+#include "pd.hpp"
+
 #define SOCKET_GETLASTERROR errno 
 
 // by default 10ms timeout 
