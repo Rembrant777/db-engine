@@ -4,7 +4,9 @@ add_library(pmd)
 target_sources(pmd
     PRIVATE
       pmdOptions.cpp
+      pmd.cpp
     PUBLIC
+      pmd.hpp
       pmdOptions.hpp
 )
 
